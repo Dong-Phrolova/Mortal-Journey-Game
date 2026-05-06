@@ -21,11 +21,8 @@ private:
     std::wstring GetCombatSkillDesc(const std::string& techId, int level);
     std::wstring GetAttrName(const std::string& attr);   // "hp" → "生命"
     int         GetAttrBonus(const std::string& attr, const std::string& techId, int level);
-    // 功法经验系统
-    int         GetTechExp(const std::string& techId);   // 查询功法经验
-    void        AddTechExp(const std::string& techId, int amt);  // 增加功法经验
-    int         TechExpToLevelUp(const std::string& techId);     // 升级所需经验
-    bool        CanUpgradeTech(const std::string& techId);       // 是否可以升级
+    // 功法点数系统（已替代旧功法经验）
+    bool        CanUpgradeTech(const std::string& techId);       // 是否有足够功法点数
 
     sf::Font m_font;
 
@@ -59,11 +56,4 @@ private:
 
     // 经验条动画
     float m_animTimer = 0.f;
-
-    // 功法经验存储（内存中，不持久化到存档的简化版）
-    struct TechExpEntry {
-        std::string techId;
-        int exp = 0;
-    };
-    std::vector<TechExpEntry> m_techExpList;
 };

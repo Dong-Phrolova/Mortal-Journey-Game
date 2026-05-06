@@ -80,6 +80,13 @@ bool GameSession::SaveGame(const std::string& path) const {
         }
         j["techniques"] = techs;
 
+        // 功法点数
+        json tpObj = json::object();
+        for (const auto& [realm, pts] : m_player.GetAllTechPoints()) {
+            tpObj[realm] = pts;
+        }
+        j["techPoints"] = tpObj;
+
         // 背包
         json inv = json::array();
         for (const auto& item : m_inventory.GetItems()) {
@@ -169,6 +176,15 @@ bool GameSession::LoadGame(const std::string& path) {
             int cur = m_player.GetGold();
             if (cur > 0) m_player.SpendGold(cur);
             m_player.AddGold(j["player"]["gold"].get<int>());
+        }
+
+        // 功法点数（必须在加载功法之前，因为升级功法会消耗点数）
+        if (j.contains("techPoints")) {
+            std::map<std::string, int> tp;
+            for (auto& [key, val] : j["techPoints"].items()) {
+                tp[key] = val.get<int>();
+            }
+            m_player.SetTechPoints(tp);
         }
 
         // 已学功法

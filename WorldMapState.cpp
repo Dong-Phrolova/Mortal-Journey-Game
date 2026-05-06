@@ -435,6 +435,8 @@ void WorldMapState::BuildHuangfengu() {
     map.tiles[15][8].type = TileType::Tree;
     map.tiles[14][15].type = TileType::Tree;
 
+    // 宝箱（练气丹放在路旁）已删除，改为任务获取
+
     m_maps[map.id] = std::move(map);
 }
 
@@ -561,6 +563,18 @@ void WorldMapState::SwitchToMap(const std::string& mapId, int spawnX, int spawnY
         if (cx >= 0 && cy >= 0 && cx < newMap->width && cy < newMap->height) {
             newMap->tiles[cy][cx].chestOpened = true;
             newMap->tiles[cy][cx].variant = 2; // 已开渲染
+        }
+    }
+
+    // 神秘小瓶宝箱：仅在 quest_006_bottle 激活后出现
+    if (mapId == "qixuanmen_back") {
+        auto* quest6 = QuestSystem::Instance().GetQuest("quest_006_bottle");
+        bool questActive = quest6 && (quest6->status == QuestStatus::Active ||
+                                       quest6->status == QuestStatus::Completed ||
+                                       quest6->status == QuestStatus::Rewarded);
+        // 如果任务激活且宝箱未被开启，显示为宝箱
+        if (questActive && !newMap->tiles[7][14].chestOpened) {
+            newMap->tiles[7][14].type = TileType::Chest;
         }
     }
 
@@ -812,6 +826,26 @@ void WorldMapState::Update(float dt) {
     if (m_moveCooldown > 0)
         m_moveCooldown -= dt;
 
+    // 连续按住方向键时，在Update中持续检查并移动（不再依赖OS按键重复延迟）
+    if (m_moveCooldown <= 0.f && m_interactState == InteractState::None) {
+        int holdDx = 0, holdDy = 0;
+        Dir holdDir;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
+            holdDy = -1; holdDir = Dir::Up;
+        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
+            holdDy = 1; holdDir = Dir::Down;
+        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
+            holdDx = -1; holdDir = Dir::Left;
+        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
+            holdDx = 1; holdDir = Dir::Right;
+        }
+
+        if (holdDx != 0 || holdDy != 0) {
+            m_player.SetDirection(holdDir);
+            TryMovePlayer(holdDx, holdDy);
+        }
+    }
+
     // 更新 NPC
     m_tileMap.UpdateNPCs(dt);
 
@@ -931,7 +965,8 @@ void WorldMapState::BuildQixuanmenBack() {
     map.tiles[3][10].chestLootCount = 3;
 
     // 神秘小瓶宝箱（原著：韩立在树林中踢到硬物，发现神秘小瓶）
-    map.tiles[7][14].type = TileType::Chest;
+    // 初始为草地，接取任务 quest_006_bottle 后变为宝箱
+    map.tiles[7][14].type = TileType::Ground;
     map.tiles[7][14].chestLootItemId = "mystic_bottle";
     map.tiles[7][14].chestLootCount = 1;
 
@@ -1250,6 +1285,11 @@ void WorldMapState::BuildCaixiaMountain() {
     map.tiles[6][11].type = TileType::Chest;   // 演武殿附近
     map.tiles[6][11].chestLootItemId = "spirit_gathering_pill";
     map.tiles[6][11].chestLootCount = 3;
+
+    // 练气丹宝箱（藏经阁附近）
+    map.tiles[8][21].type = TileType::Chest;
+    map.tiles[8][21].chestLootItemId = "qi_breakthrough_pill";
+    map.tiles[8][21].chestLootCount = 1;
 
     // === NPC：七玄门弟子 ===
     map.tiles[15][14].npcId = 100;   // 守门弟子

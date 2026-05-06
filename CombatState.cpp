@@ -18,20 +18,14 @@ static std::wstring Utf8ToWide(const std::string& s);
 //  构造函数
 // ============================================================
 CombatState::CombatState(const std::wstring& enemyName, int hp, int mp,
-                         int atk, int def, EnemyType type)
+                         int atk, int def, EnemyType type,
+                         int expReward, int goldReward)
 {
     m_type = GameStateType::Combat;
     m_enemy = std::make_unique<Enemy>(enemyName, hp, mp, atk, def, type);
     m_player = &GameSession::Instance().GetPlayer();
-
-    switch (type) {
-        case EnemyType::Mortal:   m_expReward = 5;  m_goldReward = 2;  break;
-        case EnemyType::Qi:       m_expReward = 15; m_goldReward = 8;  break;
-        case EnemyType::ZhuJi:    m_expReward = 50; m_goldReward = 25; break;
-        case EnemyType::YaoBeast: m_expReward = 20; m_goldReward = 12; break;
-        case EnemyType::MoXiu:    m_expReward = 40; m_goldReward = 30; break;
-        default:                  m_expReward = 10; m_goldReward = 5;  break;
-    }
+    m_expReward = expReward;
+    m_goldReward = goldReward;
 
     // 加载字体（宋体 → 微软雅黑）
     if (!m_font.loadFromFile("C:/Windows/Fonts/simsun.ttc"))

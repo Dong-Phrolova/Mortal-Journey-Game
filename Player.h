@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <map>
 #include <nlohmann/json.hpp>
 #include "CultivationSystem.h"
 
@@ -49,6 +50,12 @@ public:
     const std::vector<LearnedTechnique>& GetLearned() const { return m_learned; }
     const LearnedTechnique* GetLearned(const std::string& techniqueId) const;
 
+    // 功法点数系统
+    void AddTechniquePoints(const std::string& realm, int count);
+    int  GetTechniquePoints(const std::string& realm) const;
+    const std::map<std::string, int>& GetAllTechPoints() const { return m_techPoints; }
+    void SetTechPoints(const std::map<std::string, int>& pts) { m_techPoints = pts; }
+
     // 物品/灵石
     int  GetGold() const { return m_gold; }
     void AddGold(int a) { m_gold += a; }
@@ -57,10 +64,16 @@ public:
     // 突破
     bool CanBreakThrough() const;
     bool BreakThrough();  // 返回是否成功
+    std::string GetRequiredBreakthroughPill() const;  // 当前境界需要什么突破丹
+    int GetBreakthroughPillCount() const;              // 需要几颗
+    bool ConsumeBreakthroughPill();                     // 从背包消耗突破丹
 
     const std::wstring& GetName() const { return m_name; }
     std::wstring GetRealmName() const;
     MajorRealm GetMajorRealm() const { return m_culti.major; }
+
+    // 从功法cultivationReq提取所属境界字符串（"qi", "zhuji"等）
+    static std::string GetRealmFromTechnique(const std::string& cultivationReq);
 
 private:
     int CalcHp()      const;
@@ -80,4 +93,6 @@ private:
     // 修炼
     PlayerCulti m_culti;
     std::vector<LearnedTechnique> m_learned;
+    // 功法点数（境界→剩余点数）
+    std::map<std::string, int> m_techPoints;
 };

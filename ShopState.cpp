@@ -99,15 +99,21 @@ void ShopState::InitShopItems() {
     } else if (m_shopType == "medicine") {
         // 丹药师：卖各种丹药
         ShopItem si; si.itemType = ShopItemType::Item;
-        si.itemId = "hp_potion_small";      si.price = 8;   si.stock = 99;
+        si.itemId = "hp_potion_small";          si.price = 8;   si.stock = 99;
         m_shopItems.push_back(si);
-        si.itemId = "hp_potion_medium";     si.price = 22;  si.stock = 99;
+        si.itemId = "hp_potion_medium";         si.price = 22;  si.stock = 99;
         m_shopItems.push_back(si);
-        si.itemId = "mp_potion_small";      si.price = 12;  si.stock = 99;
+        si.itemId = "mp_potion_small";          si.price = 12;  si.stock = 99;
         m_shopItems.push_back(si);
-        si.itemId = "spirit_gathering_pill"; si.price = 45;  si.stock = 20;
+        si.itemId = "spirit_gathering_pill";     si.price = 45;  si.stock = 20;
         m_shopItems.push_back(si);
-        si.itemId = "breakthrough_pill";   si.price = 650; si.stock = 3;
+        si.itemId = "exp_pill_small";            si.price = 25;  si.stock = 99;
+        m_shopItems.push_back(si);
+        si.itemId = "exp_pill_medium";           si.price = 60;  si.stock = 50;
+        m_shopItems.push_back(si);
+        si.itemId = "qi_breakthrough_pill";      si.price = 30;  si.stock = 8;
+        m_shopItems.push_back(si);
+        si.itemId = "zhuji_breakthrough_pill";   si.price = 500; si.stock = 1;
         m_shopItems.push_back(si);
 
     } else if (m_shopType == "technique") {

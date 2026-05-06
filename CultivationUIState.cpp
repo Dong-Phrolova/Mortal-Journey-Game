@@ -50,29 +50,15 @@ int CultivationUIState::GetAttrBonus(const std::string& attr, const std::string&
 // ============================================================
 //  功法经验系统（内存存储）
 // ============================================================
-int CultivationUIState::GetTechExp(const std::string& techId) {
-    for (auto& e : m_techExpList)
-        if (e.techId == techId) return e.exp;
-    return 0;
-}
-
-void CultivationUIState::AddTechExp(const std::string& techId, int amt) {
-    for (auto& e : m_techExpList) {
-        if (e.techId == techId) { e.exp += amt; return; }
-    }
-    m_techExpList.push_back({techId, amt});
-}
-
-int CultivationUIState::TechExpToLevelUp(const std::string& techId) {
-    const auto* lt = GameSession::Instance().GetPlayer().GetLearned(techId);
-    if (!lt) return 9999;
-    const auto* t = ConfigManager::Instance().GetTechnique(techId);
-    if (!t || lt->level >= t->maxLevel) return 9999;
-    return lt->level * 15 + 20;
-}
-
+// 功法经验系统已替换为功法点数系统，所有升级消耗对应境界的功法点数
 bool CultivationUIState::CanUpgradeTech(const std::string& techId) {
-    return GetTechExp(techId) >= TechExpToLevelUp(techId);
+    const auto* lt = GameSession::Instance().GetPlayer().GetLearned(techId);
+    if (!lt) return false;
+    const auto* t = ConfigManager::Instance().GetTechnique(techId);
+    if (!t || lt->level >= t->maxLevel) return false;
+    // 检查功法所属境界是否有可用点数
+    std::string realm = Player::GetRealmFromTechnique(t->cultivationReq);
+    return GameSession::Instance().GetPlayer().GetTechniquePoints(realm) >= 1;
 }
 
 // ============================================================
@@ -198,15 +184,7 @@ void CultivationUIState::Enter() {
     m_msgTimer = 0.f;
     m_animTimer = 0.f;
     m_selectedTech = 0;
-    // 初始化功法经验条目（根据已学功法）
-    const auto& learned = GameSession::Instance().GetPlayer().GetLearned();
-    for (const auto& lt : learned) {
-        bool found = false;
-        for (auto& e : m_techExpList) {
-            if (e.techId == lt.techniqueId) { found = true; break; }
-        }
-        if (!found) m_techExpList.push_back({lt.techniqueId, 0});
-    }
+    // 功法经验系统已移除，功法升级消耗突破获得的功法点数
 }
 
 void CultivationUIState::Update(float dt) {
@@ -263,19 +241,19 @@ void CultivationUIState::DoCultivate() {
     const auto& lt = learned[m_selectedTech];
     const auto* t = ConfigManager::Instance().GetTechnique(lt.techniqueId);
 
-    int techExpGain = 10 + rand() % 12;
-    AddTechExp(lt.techniqueId, techExpGain);
-
     auto& culti = player->GetCultiMutable();
-    int realmGain = 6 + rand() % 8;
+    int layerBonus = culti.qiLayer / 2;
+    int majorBonus = (int)culti.major * 2;
+
+    // 下调按C收益，主要靠打怪和任务
+    int realmGain = 1 + (layerBonus + majorBonus) / 2 + rand() % 2;
     culti.cultivationExp += realmGain;
 
     std::wstring techName = t ? Utf8ToWide(t->name) : L"未知功法";
-    std::wstring msg = L"修炼【" + techName + L"】，功法+" + std::to_wstring(techExpGain)
-                     + L" 境界+" + std::to_wstring(realmGain);
+    std::wstring msg = L"修炼【" + techName + L"】，境界+" + std::to_wstring(realmGain);
 
     if (CanUpgradeTech(lt.techniqueId)) {
-        msg += L"（功法可升级！）";
+        msg += L"（按U消耗功法点数升级！）";
         m_messageText.setFillColor(sf::Color(100, 255, 150));
     } else if (culti.cultivationExp >= culti.breakthroughReq) {
         msg += L"（境界经验已满，可突破！）";
@@ -318,27 +296,29 @@ void CultivationUIState::TryUpgradeTechnique() {
     }
 
     if (!CanUpgradeTech(lt.techniqueId)) {
-        int need = TechExpToLevelUp(lt.techniqueId);
-        int have = GetTechExp(lt.techniqueId);
-        m_messageText.setString(L"功法经验不足！（需" + std::to_wstring(need)
-                               + L"，当前" + std::to_wstring(have) + L"）继续修炼吧。");
+        std::string realm = Player::GetRealmFromTechnique(t->cultivationReq);
+        std::wstring realmW;
+        if (realm == "qi") realmW = L"练气";
+        else if (realm == "zhuji") realmW = L"筑基";
+        else realmW = L"未知";
+        int pts = player->GetTechniquePoints(realm);
+        m_messageText.setString(L"功法点数不足！需要1点" + realmW + L"点数（当前" + std::to_wstring(pts) + L"点），突破境界可获得2点。");
         m_messageText.setFillColor(sf::Color(255, 180, 100));
         m_msgTimer = 2.5f;
         return;
     }
 
-    int expUsed = TechExpToLevelUp(lt.techniqueId);
-    int curExp = GetTechExp(lt.techniqueId);
-    int newExp = curExp - expUsed;
-    for (auto& e : m_techExpList) {
-        if (e.techId == lt.techniqueId) { e.exp = newExp; break; }
+    // 消耗功法点数升级
+    bool ok = player->UpgradeTechnique(lt.techniqueId);
+    if (!ok) {
+        m_messageText.setString(L"升级失败！");
+        m_messageText.setFillColor(sf::Color(255, 120, 100));
+        m_msgTimer = 2.f;
+        return;
     }
 
-    player->UpgradeTechnique(lt.techniqueId);
-    int newLevel = lt.level + 1;
-
     const auto* updatedLt = player->GetLearned(lt.techniqueId);
-    newLevel = updatedLt ? updatedLt->level : newLevel;
+    int newLevel = updatedLt ? updatedLt->level : lt.level;
 
     std::wstring techNameW = Utf8ToWide(t->name);
     m_messageText.setString(L"★ " + techNameW + L" 升级成功！→ Lv." + std::to_wstring(newLevel));
@@ -351,6 +331,7 @@ void CultivationUIState::TryUpgradeTechnique() {
             if (us.level == newLevel) {
                 m_msgTimer = 5.f;
                 m_messageText.setFillColor(sf::Color(100, 255, 130));
+                break;
             }
         }
     } else {
@@ -366,41 +347,43 @@ void CultivationUIState::TryBreakthrough() {
     auto& culti = player->GetCultiMutable();
 
     if (culti.cultivationExp < culti.breakthroughReq) {
-        m_messageText.setString(L"境界经验不足！继续修炼积累灵力吧。");
+        int need = culti.breakthroughReq - culti.cultivationExp;
+        m_messageText.setString(L"境界经验不足！还需 " + std::to_wstring(need) + L" 点经验。继续修炼或打怪积累吧。");
         m_messageText.setFillColor(sf::Color(255, 180, 100));
         m_msgTimer = 2.5f;
         return;
     }
 
-    int baseChance = 50;
-    if (culti.spiritRoot == SpiritRoot::HeavenSpirit) baseChance += 30;
-    else if (culti.spiritRoot == SpiritRoot::SingleElement) baseChance += 20;
-    else if (culti.spiritRoot == SpiritRoot::DualElement) baseChance += 10;
-    else if (culti.spiritRoot == SpiritRoot::Mutated) baseChance += 25;
+    // 检查突破丹
+    std::string pillId = player->GetRequiredBreakthroughPill();
+    std::wstring pillName;
+    if (pillId == "qi_breakthrough_pill") pillName = L"练气丹";
+    else if (pillId == "zhuji_breakthrough_pill") pillName = L"筑基丹";
+    else if (pillId == "jiedan_breakthrough_pill") pillName = L"结金丹";
+    else pillName = L"未知丹药";
 
-    int roll = rand() % 100;
-    bool success = roll < baseChance;
+    auto& inv = GameSession::Instance().GetInventory();
+    if (!inv.HasItem(pillId, 1)) {
+        m_messageText.setString(L"需要【" + pillName + L"】×1 才能突破！丹药师有售，部分任务也会奖励。");
+        m_messageText.setFillColor(sf::Color(255, 200, 100));
+        m_msgTimer = 3.5f;
+        return;
+    }
 
-    if (success) {
-        bool ok = player->BreakThrough();
-        if (ok) {
-            m_messageText.setString(L"★ 突破成功！当前境界：" +
-                                       player->GetRealmName());
-            m_messageText.setFillColor(sf::Color(100, 255, 130));
-            // 通知任务系统：突破成功
-            QuestSystem::Instance().UpdateProgress(QuestTargetType::Custom, "breakthrough_success", 1);
-            
-            // 通知任务系统：检查等级条件
-            std::string levelStr = CultivationSystem::GetLevelString(player->GetCulti());
-            OnLevelUp(levelStr);
-        } else {
-            m_messageText.setString(L"已达最高境界，无法再突破！");
-            m_messageText.setFillColor(sf::Color(255, 215, 80));
-        }
+    // 尝试突破（消耗丹药+经验）
+    bool ok = player->BreakThrough();
+    if (ok) {
+        m_messageText.setString(L"★ 突破成功！当前境界：" + player->GetRealmName());
+        m_messageText.setFillColor(sf::Color(100, 255, 130));
+        // 通知任务系统：突破成功
+        QuestSystem::Instance().UpdateProgress(QuestTargetType::Custom, "breakthrough_success", 1);
+
+        // 通知任务系统：检查等级条件
+        std::string levelStr = CultivationSystem::GetLevelString(player->GetCulti());
+        OnLevelUp(levelStr);
     } else {
-        culti.cultivationExp /= 2;
-        m_messageText.setString(L"突破失败...损失了部分灵力。（成功率:" + std::to_wstring(baseChance) + L"%）");
-        m_messageText.setFillColor(sf::Color(255, 120, 100));
+        m_messageText.setString(L"已达最高境界，无法再突破！");
+        m_messageText.setFillColor(sf::Color(255, 215, 80));
     }
     m_msgTimer = 4.f;
 }
@@ -494,11 +477,26 @@ void CultivationUIState::Render(sf::RenderWindow& window) {
         sf::Text btStatus;
         btStatus.setFont(m_font);
         btStatus.setCharacterSize(12);
+
+        // 显示当前需要的突破丹
+        std::string pillId = player->GetRequiredBreakthroughPill();
+        std::wstring pillName;
+        if (pillId == "qi_breakthrough_pill") pillName = L"练气丹";
+        else if (pillId == "zhuji_breakthrough_pill") pillName = L"筑基丹";
+        else if (pillId == "jiedan_breakthrough_pill") pillName = L"结金丹";
+        else pillName = Utf8ToWide(pillId);
+        bool hasPill = GameSession::Instance().GetInventory().HasItem(pillId, 1);
+
         if (culti.cultivationExp >= culti.breakthroughReq) {
-            btStatus.setString(L"★ 可突破！按 B 键尝试 ★");
-            btStatus.setFillColor(sf::Color(100, 255, 130));
+            if (hasPill) {
+                btStatus.setString(L"★ 可突破！按 B 键突破 ★");
+                btStatus.setFillColor(sf::Color(100, 255, 130));
+            } else {
+                btStatus.setString(L"需要【" + pillName + L"】×1 才能突破！");
+                btStatus.setFillColor(sf::Color(255, 200, 100));
+            }
         } else {
-            btStatus.setString(L"需要更多修炼经验...");
+            btStatus.setString(L"需要更多修炼经验 + " + pillName + L"×1");
             btStatus.setFillColor(sf::Color(120, 120, 130));
         }
         btStatus.setPosition(32.f, 145.f);
@@ -571,15 +569,23 @@ void CultivationUIState::Render(sf::RenderWindow& window) {
                 bool selected = ((int)i == m_selectedTech);
                 if (t) {
                     std::wstring name = Utf8ToWide(t->name);
+                    // 功法境界标签与颜色
+                    std::string realm = Player::GetRealmFromTechnique(t->cultivationReq);
+                    std::wstring realmTag;
+                    sf::Color realmColor;
+                    if (realm == "qi")      { realmTag = L"【练气】"; realmColor = sf::Color(102, 187, 106); }
+                    else if (realm == "zhuji")  { realmTag = L"【筑基】"; realmColor = sf::Color(66, 165, 245); }
+                    else if (realm == "jindan") { realmTag = L"【结丹】"; realmColor = sf::Color(255, 213, 79); }
+                    else                    { realmTag = L"";       realmColor = sf::Color(170, 200, 170); }
                     if (selected) {
-                        m_techItems[i].setString(L"▶ " + name + L"  Lv." + std::to_wstring(learned[i].level)
+                        m_techItems[i].setString(realmTag + name + L"  Lv." + std::to_wstring(learned[i].level)
                                                   + L"/" + std::to_wstring(t->maxLevel));
-                        m_techItems[i].setFillColor(sf::Color(255, 220, 80));
+                        m_techItems[i].setFillColor(realmColor);
                         m_techItems[i].setStyle(sf::Text::Bold);
                     } else {
-                        m_techItems[i].setString(L"  " + name + L"  Lv." + std::to_wstring(learned[i].level)
+                        m_techItems[i].setString(realmTag + name + L"  Lv." + std::to_wstring(learned[i].level)
                                                   + L"/" + std::to_wstring(t->maxLevel));
-                        m_techItems[i].setFillColor(sf::Color(170, 200, 170));
+                        m_techItems[i].setFillColor(realmColor);
                         m_techItems[i].setStyle(sf::Text::Regular);
                     }
                 } else {
@@ -648,34 +654,26 @@ void CultivationUIState::Render(sf::RenderWindow& window) {
                 m_techDetailLines[line].setFillColor(sf::Color(180, 180, 120));
                 window.draw(m_techDetailLines[line]); line++;
 
-                // 行5: 经验文字
-                int curTechExp = GetTechExp(lt.techniqueId);
-                int needExp = TechExpToLevelUp(lt.techniqueId);
-                float techRatio = (needExp > 0) ? (float)curTechExp / (float)needExp : 0.f;
-                techRatio = std::min(1.f, techRatio);
+                // 行5: 功法点数信息
+                std::string realm = Player::GetRealmFromTechnique(t->cultivationReq);
+                int pts = GameSession::Instance().GetPlayer().GetTechniquePoints(realm);
                 bool canUp = CanUpgradeTech(lt.techniqueId);
 
                 m_techDetailLines[line].setString(
-                    L"经验: " + std::to_wstring(curTechExp) + L"/" + std::to_wstring(needExp)
-                    + (canUp ? L" [可U升级]" : L""));
+                    L"点数: " + std::to_wstring(pts) + L"点可用"
+                    + (canUp ? L" [按U升级]" : L" (突破得2点)"));
                 m_techDetailLines[line].setFillColor(
                     canUp ? sf::Color(100, 255, 130) : sf::Color(140, 170, 200));
                 window.draw(m_techDetailLines[line]);
 
-                // 内联经验条（在同一行右侧，不占新行）
+                // 代替旧经验条的简化升级提示
                 float barX = 620.f;
                 float barY = 316.f + line * 17.f + 3.f;
-                sf::RectangleShape techExpBg(sf::Vector2f(90.f, 7.f));
-                techExpBg.setFillColor(sf::Color(40, 40, 50));
-                techExpBg.setPosition(barX, barY);
-                window.draw(techExpBg);
+                sf::RectangleShape ptsBg(sf::Vector2f(90.f, 7.f));
+                ptsBg.setFillColor(sf::Color(40, 40, 50));
+                ptsBg.setPosition(barX, barY);
+                window.draw(ptsBg);
 
-                if (techRatio > 0) {
-                    sf::RectangleShape techExpFill(sf::Vector2f(86.f * techRatio, 5.f));
-                    techExpFill.setFillColor(canUp ? sf::Color(100, 200, 100) : sf::Color(80, 120, 180));
-                    techExpFill.setPosition(barX + 2.f, barY + 1.f);
-                    window.draw(techExpFill);
-                }
                 line++;
 
                 // 行6-7: 解锁技能列表

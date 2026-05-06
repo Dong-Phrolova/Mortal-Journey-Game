@@ -37,7 +37,8 @@ struct CombatSkill {
 class CombatState : public GameState {
 public:
     CombatState(const std::wstring& enemyName, int hp, int mp,
-                int atk, int def, EnemyType type = EnemyType::Mortal);
+                int atk, int def, EnemyType type = EnemyType::Mortal,
+                int expReward = 5, int goldReward = 2);
 
     void Enter() override;
     void Exit() override;

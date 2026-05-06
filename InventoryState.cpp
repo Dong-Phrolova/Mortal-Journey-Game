@@ -331,7 +331,24 @@ void InventoryState::Render(sf::RenderWindow& window) {
             t.setPosition(435.f, 125.f);
             window.draw(t);
 
-            sf::Text d(desc, m_font, 14);
+            // 描述文字自动换行（每行约25个中文字符，防止溢出面板）
+            std::wstring wrappedDesc;
+            int maxLineLen = 25;
+            int lineLen = 0;
+            for (size_t ci = 0; ci < desc.size(); ++ci) {
+                wrappedDesc += desc[ci];
+                ++lineLen;
+                // 在标点或空格处断行
+                if (lineLen >= maxLineLen && (ci + 1 < desc.size())) {
+                    wchar_t c = desc[ci];
+                    if (c == L'。' || c == L'，' || c == L'！' || c == L'？' || c == L'；' || c == L'）' || c == L'」' || c == L' ' || c == L'）' || c == L'\n') {
+                        wrappedDesc += L'\n';
+                        lineLen = 0;
+                    }
+                }
+            }
+
+            sf::Text d(wrappedDesc, m_font, 14);
             d.setFillColor(sf::Color(170, 170, 165));
             d.setPosition(435.f, 155.f);
             d.setLineSpacing(3.f);
@@ -375,7 +392,7 @@ void InventoryState::Render(sf::RenderWindow& window) {
 
     // 当前装备显示
     {
-        float ex = 435.f, ey = 430.f;
+        float ex = 435.f, ey = 405.f;  // 上移到405避免溢出面板
         sf::Text equipTitle(L"— 当前装备 —", m_font, 15);
         equipTitle.setFillColor(sf::Color(170, 145, 95));
         equipTitle.setPosition(ex, ey); ey += 22.f;

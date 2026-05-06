@@ -45,7 +45,7 @@ void QuestSystem::DefineMainQuests() {
         QuestData q;
         q.id = "quest_001_start";
         q.name = "初到青牛镇";
-        q.description = "你跟随三叔来到了青牛镇。去韩家小院找三叔，\n然后准备经由七玄门前往神手谷拜师学艺！";
+        q.description = "你跟随三叔来到了青牛镇。先去韩家小院找三叔，\n然后前往七玄门，再到神手谷拜师学艺，学会长春功。";
         q.status = QuestStatus::Locked;
 
         QuestObjective obj1;
@@ -68,38 +68,49 @@ void QuestSystem::DefineMainQuests() {
         q.objectives.push_back(obj3);
 
         q.reward.gold = 50;
-        q.reward.exp = 20;
+        q.reward.exp = 30;
+        QuestReward::ItemReward item_cloth, item_pill_1;
+        item_cloth.itemId = "cloth_armor";
+        item_cloth.count = 1;
+        item_pill_1.itemId = "qi_breakthrough_pill";
+        item_pill_1.count = 1;
+        q.reward.items.push_back(item_cloth);
+        q.reward.items.push_back(item_pill_1);
         q.onAcceptNarration = "story_arrive_qingniu";
         q.onCompleteNarration = "story_learn_technique";
 
         m_quests.push_back(q);
     }
 
-    // ===== 任务2: 勤修苦练 =====
+    // ===== 任务2: 勤修苦练（需突破+升级功法）=====
     {
         QuestData q;
         q.id = "quest_002_cultivate";
         q.name = "勤修苦练";
-        q.description = "勤加修炼！按C键打开修炼界面，修炼3次并将长春功升级到Lv.3。";
+        q.description = "学会长春功后，勤加修炼！先突破到练气二层（按C键修炼积累经验，\n然后在修炼界面按B键突破），再将长春功升级到Lv.2（消耗练气点数）。";
         q.status = QuestStatus::Locked;
         q.prerequisiteQuests.push_back("quest_001_start");
 
         QuestObjective obj1;
-        obj1.description = "进行 3 次修炼（按 C 键）";
+        obj1.description = "突破到练气二层（需要按B键，首次突破无需丹药）";
         obj1.type = QuestTargetType::Custom;
-        obj1.targetId = "cultivate_3";
-        obj1.requiredCount = 3;
+        obj1.targetId = "breakthrough_success";
+        obj1.requiredCount = 1;
         q.objectives.push_back(obj1);
 
         QuestObjective obj2;
-        obj2.description = "将长春功升级到 Lv.3";
+        obj2.description = "将长春功升级到Lv.2（按U键消耗1点练气点数）";
         obj2.type = QuestTargetType::UpgradeTechnique;
         obj2.targetId = "changchun";
-        obj2.requiredCount = 3;
+        obj2.requiredCount = 2;
         q.objectives.push_back(obj2);
 
         q.reward.gold = 100;
-        q.reward.exp = 30;
+        q.reward.exp = 40;
+        QuestReward::ItemReward item_pill_sm;
+        item_pill_sm.itemId = "exp_pill_small";
+        item_pill_sm.count = 3;
+        q.reward.items.push_back(item_pill_sm);
         q.onCompleteNarration = "story_cultivate_progress";
 
         m_quests.push_back(q);
@@ -110,23 +121,17 @@ void QuestSystem::DefineMainQuests() {
         QuestData q;
         q.id = "quest_003_first_combat";
         q.name = "初试锋芒";
-        q.description = "走出七玄门到野外（后山/嘉州城），击败2个敌人检验修炼成果。";
+        q.description = "修炼小成，该去后山历练一番了！击败3个敌人，检验自己的实力。";
         q.status = QuestStatus::Locked;
         q.prerequisiteQuests.push_back("quest_002_cultivate");
 
         QuestObjective obj1;
-        obj1.description = "击败 2 个敌人";
+        obj1.description = "击败 3 个敌人";
         obj1.type = QuestTargetType::DefeatEnemy;
         obj1.targetId = "any";
-        obj1.requiredCount = 2;
+        obj1.requiredCount = 3;
         q.objectives.push_back(obj1);
 
-        q.reward.gold = 80;
-        q.reward.exp = 40;
-        QuestReward::ItemReward item;
-        item.itemId = "hp_potion_small";
-        item.count = 3;
-        q.reward.items.push_back(item);
         q.onCompleteNarration = "story_first_victory";
 
         m_quests.push_back(q);
@@ -165,8 +170,8 @@ void QuestSystem::DefineMainQuests() {
     {
         QuestData q;
         q.id = "quest_005_breakthrough";
-        q.name = "突破！练气期";
-        q.description = "修为已到瓶颈！按B键尝试突破境界，并将长春功修炼到Lv.5。";
+        q.name = "突破瓶颈";
+        q.description = "修炼到了瓶颈！你需要一枚【练气丹】来冲破穴位。\n丹药师那有售卖，买一颗来试试吧。";
         q.status = QuestStatus::Locked;
         q.prerequisiteQuests.push_back("quest_004_market");
 
@@ -185,12 +190,14 @@ void QuestSystem::DefineMainQuests() {
         q.objectives.push_back(obj2);
 
         q.reward.gold = 200;
-        q.reward.exp = 100;
-        QuestReward::ItemReward item1, item2;
+        q.reward.exp = 80;
+        QuestReward::ItemReward item1, item2, item3;
         item1.itemId = "spirit_gathering_pill"; item1.count = 2;
-        item2.itemId = "breakthrough_pill";     item2.count = 1;
+        item2.itemId = "qi_breakthrough_pill"; item2.count = 1;
+        item3.itemId = "exp_pill_small";       item3.count = 3;
         q.reward.items.push_back(item1);
         q.reward.items.push_back(item2);
+        q.reward.items.push_back(item3);
         q.onCompleteNarration = "story_breakthrough";
 
         m_quests.push_back(q);
@@ -219,7 +226,7 @@ void QuestSystem::DefineMainQuests() {
         q.objectives.push_back(obj2);
 
         q.reward.gold = 100;
-        q.reward.exp = 50;
+        q.reward.exp = 60;
         q.onCompleteNarration = "story_found_bottle";
         // 不在接取时触发旁白，改为到达后山+走到小瓶附近时触发
         // q.onAcceptNarration = "story_hint_bottle";
@@ -249,7 +256,11 @@ void QuestSystem::DefineMainQuests() {
         q.objectives.push_back(obj2);
 
         q.reward.gold = 80;
-        q.reward.exp = 40;
+        q.reward.exp = 50;
+        QuestReward::ItemReward item_pill_7;
+        item_pill_7.itemId = "spirit_gathering_pill";
+        item_pill_7.count = 2;
+        q.reward.items.push_back(item_pill_7);
         q.onCompleteNarration = "story_mo_scheme";
 
         m_quests.push_back(q);
@@ -278,7 +289,7 @@ void QuestSystem::DefineMainQuests() {
         q.objectives.push_back(obj2);
 
         q.reward.gold = 150;
-        q.reward.exp = 60;
+        q.reward.exp = 70;
         QuestReward::ItemReward item;
         item.itemId = "hp_potion_medium";
         item.count = 3;
@@ -304,11 +315,14 @@ void QuestSystem::DefineMainQuests() {
         q.objectives.push_back(obj1);
 
         q.reward.gold = 200;
-        q.reward.exp = 80;
-        QuestReward::ItemReward item;
-        item.itemId = "mystic_ice_jade";
-        item.count = 1;
-        q.reward.items.push_back(item);
+        q.reward.exp = 100;
+        QuestReward::ItemReward item_jade, item_pill_9;
+        item_jade.itemId = "mystic_ice_jade";
+        item_jade.count = 1;
+        item_pill_9.itemId = "qi_breakthrough_pill";
+        item_pill_9.count = 2;
+        q.reward.items.push_back(item_jade);
+        q.reward.items.push_back(item_pill_9);
         q.onCompleteNarration = "story_mo_final";
 
         m_quests.push_back(q);
@@ -337,7 +351,7 @@ void QuestSystem::DefineMainQuests() {
         q.objectives.push_back(obj2);
 
         q.reward.gold = 300;
-        q.reward.exp = 100;
+        q.reward.exp = 120;
         QuestReward::ItemReward item1, item2;
         item1.itemId = "spirit_gathering_pill";
         item1.count = 5;
@@ -382,8 +396,8 @@ void QuestSystem::DefineMainQuests() {
         q.reward.gold = 500;
         q.reward.exp = 200;
         QuestReward::ItemReward item;
-        item.itemId = "breakthrough_pill";
-        item.count = 2;
+        item.itemId = "spirit_gathering_pill";
+        item.count = 3;
         q.reward.items.push_back(item);
         q.onCompleteNarration = "story_xuese_done";
 
@@ -726,6 +740,11 @@ bool QuestSystem::ClaimReward(const std::string& questId) {
 
     if (q->reward.gold > 0) {
         GameSession::Instance().GetPlayer().AddGold(q->reward.gold);
+    }
+
+    // 发放修炼经验
+    if (q->reward.exp > 0) {
+        GameSession::Instance().GetPlayer().GetCultiMutable().cultivationExp += q->reward.exp;
     }
 
     auto& inv = GameSession::Instance().GetInventory();
