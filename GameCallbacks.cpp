@@ -63,6 +63,17 @@ void OnStartCombat(const std::string& enemyId) {
     } else if (enemyId == "yao_beast_qi") {
         auto cs = std::make_unique<CombatState>(L"妖兽·练气期", 150, 35, 32, 18, EnemyType::YaoBeast);
         GameStateManager::Instance().PushState(std::move(cs));
+    } else if (enemyId == "mo_dafu_boss") {
+        // 墨大夫Boss战 — 高难度特殊Boss
+        auto cs = std::make_unique<CombatState>(L"墨大夫·夺舍", 250, 80, 35, 20, EnemyType::MoXiu);
+        cs->SetBossFlag(true);  // 标记为Boss战
+        GameStateManager::Instance().PushState(std::move(cs));
+    } else if (enemyId == "yelang_thug") {
+        auto cs = std::make_unique<CombatState>(L"野狼帮匪徒", 70, 15, 18, 8, EnemyType::Mortal);
+        GameStateManager::Instance().PushState(std::move(cs));
+    } else if (enemyId == "yelang_captain") {
+        auto cs = std::make_unique<CombatState>(L"野狼帮头目", 120, 30, 25, 14, EnemyType::Mortal);
+        GameStateManager::Instance().PushState(std::move(cs));
     } else {
         auto cs = std::make_unique<CombatState>(L"未知敌人", 80, 20, 18, 8, EnemyType::Mortal);
         GameStateManager::Instance().PushState(std::move(cs));

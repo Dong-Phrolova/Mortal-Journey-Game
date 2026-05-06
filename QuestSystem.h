@@ -108,11 +108,32 @@ public:
     // 检查位置条件（由地图系统调用）
     void CheckLocation(const std::string& mapId, int tileX, int tileY);
 
+    // 条件旁白：当玩家到达指定地图时触发的旁白
+    struct PendingLocationNarration {
+        std::string mapId;          // 目标地图ID
+        std::string narrationKey;   // 旁白文本key
+        bool triggered = false;     // 是否已触发
+    };
+    void AddLocationNarration(const std::string& mapId, const std::string& narrationKey);
+    void ClearLocationNarrations();
+
     // 检查等级条件（由修炼系统调用）
     void CheckLevel(const std::string& levelStr);
 
     // 检查道具条件（由背包系统调用）
     void CheckItemCollection(const std::string& itemId, int count);
+
+    // Boss击败后的特殊流程（对话+旁白）
+    struct PendingBossDefeat {
+        std::string bossId;        // Boss敌人ID
+        std::wstring defeatDialogue; // 战败对话文本
+        std::string narrationKey;  // 触发的旁白key
+        bool triggered = false;
+    };
+    void AddPendingBossDefeat(const std::string& bossId, const std::wstring& dialogue, const std::string& narrationKey);
+    bool CheckBossDefeat(const std::string& enemyId);
+    const PendingBossDefeat* GetPendingBossDefeat() const;
+    void ClearPendingBossDefeat();
 
     // 检查并完成任务
     void CheckCompletion(const std::string& questId);
@@ -132,12 +153,15 @@ public:
     // 触发旁白（供外部调用显示剧情文本）
     struct NarrationEvent {
         std::string text;             // 旁白内容 key
-        float duration = 4.f;          // 显示时长(秒)
+        float duration = 4.f;          // 显示时长(秒)（仅自动消失模式有效）
         enum Type { Story, InnerThought, Hint } type = Type::Story;
-        std::wstring wtext;          // 宽字符旁白文本（直接渲染用）
+        std::wstring wtext;            // 宽字符旁白文本（直接渲染用）
+        bool waitForConfirm = true;    // 是否等待玩家按回车确认（true=对话模式，false=自动消失）
     };
     NarrationEvent* GetCurrentNarration();
     float GetNarrationTimer() const;
+    bool IsNarrationWaitingConfirm() const;  // 旁白是否在等待玩家确认
+    void ConfirmNarration();                 // 玩家确认旁白（按回车）
     void SetNarration(const std::string& text, NarrationEvent::Type type = NarrationEvent::Story, float dur = 4.f);
     void UpdateNarration(float dt);
     void ClearNarration();
@@ -149,9 +173,13 @@ private:
 
     NarrationEvent m_currentNarration;
     float m_narrationTimer = 0.f;
+    bool m_narrationWaitingConfirm = false;  // 旁白是否等待玩家确认
     std::wstring m_currentNarrationText;  // 旁白宽字符串缓存
 
     void DefineMainQuests();  // 定义所有主线任务
 
     bool m_initialized = false;  // 是否已初始化（防止重复初始化丢失进度）
+
+    std::vector<PendingLocationNarration> m_pendingLocationNarrations;  // 待触发的位置旁白
+    PendingBossDefeat m_pendingBossDefeat;  // 待触发的Boss击败事件
 };

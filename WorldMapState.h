@@ -87,7 +87,7 @@ private:
     void RenderMapEnemies(sf::RenderWindow& window, float camOffsetX, float camOffsetY);
 
     // 交互系统：选项菜单 + 对话
-    enum class InteractState { None, ShowOptions, InDialogue };
+    enum class InteractState { None, ShowOptions, InDialogue, ShowNarration, BossDefeatDialogue };
     InteractState m_interactState = InteractState::None;
     int m_nearbyNPCId = -1;
     int m_selectedOption = 0;
@@ -105,6 +105,17 @@ private:
     sf::Text m_floatText;
     std::wstring m_floatMsg;
     float m_floatTimer = 0.f;
+
+    // 引路提示系统：闪烁黄色感叹号
+    float m_guideAnimTimer = 0.f;  // 闪烁动画计时
+    void RenderQuestGuides(sf::RenderWindow& window);
+    void RemoveMoDafuNPC();  // 击败墨大夫后移除所有地图上的墨大夫NPC
+    struct GuideMarker {
+        int tileX;
+        int tileY;
+        enum Type { NPC, Door } type;
+    };
+    std::vector<GuideMarker> m_currentGuideMarkers;
 
     // 持久化的已开启宝箱集合（格式："mapId_x_y"）
     std::set<std::string> m_openedChests;

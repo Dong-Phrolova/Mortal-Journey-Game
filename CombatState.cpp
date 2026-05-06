@@ -617,25 +617,119 @@ void CombatState::ExecuteEnemyAction() {
     int action = m_enemy->ChooseAction();
     m_msgQueue.clear();
 
-    static const wchar_t* actionNames[3] = {
-        L"发动攻击", L"防御反击", L"使出绝招"
-    };
-    PushMessage(L"【" + m_enemy->GetName() + L"】" +
-                std::wstring(actionNames[std::min(action, 2)]) + L"！");
+    // Boss特殊AI：墨大夫等Boss有独特技能
+    if (m_isBoss) {
+        int bossHp = m_enemy->GetHp();
+        int bossMaxHp = m_enemy->GetMaxHp();
+        float hpRatio = (float)bossHp / (float)std::max(1, bossMaxHp);
+        std::wstring bossName = m_enemy->GetName();
 
-    int dmg = 0;
-    switch (action) {
-        case 0: dmg = std::max(1, m_enemy->GetAttack() - m_player->GetDefense() / 2); break;
-        case 1: dmg = std::max(1, m_enemy->GetAttack() / 4); break;
-        case 2: dmg = std::max(1, (int)(m_enemy->GetAttack() * 1.7f) - m_player->GetDefense() / 2); break;
-        default: dmg = 1; break;
+        // Boss阶段技能
+        if (hpRatio > 0.6f) {
+            // 阶段1：正常攻击 + 毒雾
+            int roll = rand() % 10;
+            if (roll < 5) {
+                // 普通攻击
+                int dmg = std::max(1, m_enemy->GetAttack() - m_player->GetDefense() / 2);
+                m_player->SetCurrentHp(m_player->GetCurrentHp() - dmg);
+                m_playerHit = true;
+                m_hitShakeTimer = 0.4f;
+                SpawnHitParticles(200.f, 300.f, sf::Color(255, 80, 80));
+                PushMessage(L"【" + bossName + L"】发动攻击！");
+                PushMessage(L"造成 " + std::to_wstring(dmg) + L" 点伤害！");
+            } else if (roll < 8) {
+                // 毒雾术 — 中等伤害+持续debuff描述
+                int dmg = std::max(1, (int)(m_enemy->GetAttack() * 1.3f) - m_player->GetDefense() / 3);
+                m_player->SetCurrentHp(m_player->GetCurrentHp() - dmg);
+                m_playerHit = true;
+                m_hitShakeTimer = 0.5f;
+                SpawnHitParticles(200.f, 300.f, sf::Color(100, 200, 50));
+                PushMessage(L"【" + bossName + L"】施展【毒雾术】！");
+                PushMessage(L"绿色毒雾弥漫，造成 " + std::to_wstring(dmg) + L" 点伤害！");
+            } else {
+                // 夺舍秘术·预备 — 低伤害但蓄力
+                int dmg = std::max(1, m_enemy->GetAttack() / 3);
+                m_player->SetCurrentHp(m_player->GetCurrentHp() - dmg);
+                m_playerHit = true;
+                m_hitShakeTimer = 0.3f;
+                SpawnHitParticles(200.f, 300.f, sf::Color(180, 50, 220));
+                PushMessage(L"【" + bossName + L"】低声念咒...\n一股阴冷的力量向你袭来！");
+                PushMessage(L"造成 " + std::to_wstring(dmg) + L" 点伤害。墨大夫似乎在积蓄力量...");
+            }
+        } else if (hpRatio > 0.3f) {
+            // 阶段2：更激进，使用夺舍秘术
+            int roll = rand() % 10;
+            if (roll < 4) {
+                // 强化攻击
+                int dmg = std::max(1, (int)(m_enemy->GetAttack() * 1.5f) - m_player->GetDefense() / 2);
+                m_player->SetCurrentHp(m_player->GetCurrentHp() - dmg);
+                m_playerHit = true;
+                m_hitShakeTimer = 0.5f;
+                SpawnHitParticles(200.f, 300.f, sf::Color(255, 100, 50));
+                PushMessage(L"【" + bossName + L"】狂暴攻击！");
+                PushMessage(L"造成 " + std::to_wstring(dmg) + L" 点伤害！");
+            } else if (roll < 7) {
+                // 夺舍秘术 — 大伤害
+                int dmg = std::max(1, (int)(m_enemy->GetAttack() * 2.0f) - m_player->GetDefense() / 3);
+                m_player->SetCurrentHp(m_player->GetCurrentHp() - dmg);
+                m_playerHit = true;
+                m_hitShakeTimer = 0.6f;
+                SpawnHitParticles(200.f, 300.f, sf::Color(200, 50, 255));
+                PushMessage(L"【" + bossName + L"】施展【夺舍秘术】！");
+                PushMessage(L"阴寒之力入侵体内，造成 " + std::to_wstring(dmg) + L" 点伤害！");
+            } else {
+                // 自愈 — 恢复少量HP
+                int heal = bossMaxHp / 8;
+                // Boss无法真正自愈，只是描述效果（保持战斗难度）
+                SpawnHitParticles(580.f, 200.f, sf::Color(100, 255, 100));
+                PushMessage(L"【" + bossName + L"】服用丹药，气息稍有恢复！");
+                PushMessage(L"（但你的攻势令他无法安心疗伤）");
+            }
+        } else {
+            // 阶段3：濒死狂暴，高伤害技能
+            int roll = rand() % 10;
+            if (roll < 5) {
+                // 拼命一击
+                int dmg = std::max(1, (int)(m_enemy->GetAttack() * 2.2f) - m_player->GetDefense() / 3);
+                m_player->SetCurrentHp(m_player->GetCurrentHp() - dmg);
+                m_playerHit = true;
+                m_hitShakeTimer = 0.7f;
+                SpawnHitParticles(200.f, 300.f, sf::Color(255, 50, 50));
+                PushMessage(L"【" + bossName + L"】濒死反扑！");
+                PushMessage(L"造成 " + std::to_wstring(dmg) + L" 点伤害！");
+            } else {
+                // 夺舍秘术·全力
+                int dmg = std::max(1, (int)(m_enemy->GetAttack() * 2.5f) - m_player->GetDefense() / 4);
+                m_player->SetCurrentHp(m_player->GetCurrentHp() - dmg);
+                m_playerHit = true;
+                m_hitShakeTimer = 0.8f;
+                SpawnHitParticles(200.f, 300.f, sf::Color(220, 30, 255));
+                PushMessage(L"【" + bossName + L"】孤注一掷：【夺舍秘术·全力】！");
+                PushMessage(L"巨大的灵压席卷而来，造成 " + std::to_wstring(dmg) + L" 点伤害！");
+            }
+        }
+    } else {
+        // 普通敌人AI
+        static const wchar_t* actionNames[3] = {
+            L"发动攻击", L"防御反击", L"使出绝招"
+        };
+        PushMessage(L"【" + m_enemy->GetName() + L"】" +
+                    std::wstring(actionNames[std::min(action, 2)]) + L"！");
+
+        int dmg = 0;
+        switch (action) {
+            case 0: dmg = std::max(1, m_enemy->GetAttack() - m_player->GetDefense() / 2); break;
+            case 1: dmg = std::max(1, m_enemy->GetAttack() / 4); break;
+            case 2: dmg = std::max(1, (int)(m_enemy->GetAttack() * 1.7f) - m_player->GetDefense() / 2); break;
+            default: dmg = 1; break;
+        }
+
+        m_player->SetCurrentHp(m_player->GetCurrentHp() - dmg);
+        m_playerHit = true;
+        m_hitShakeTimer = 0.4f;
+        SpawnHitParticles(200.f, 300.f, sf::Color(255, 80, 80));
+        PushMessage(L"对【" + m_player->GetName() + L"】造成 " + std::to_wstring(dmg) + L" 点伤害！");
     }
-
-    m_player->SetCurrentHp(m_player->GetCurrentHp() - dmg);
-    m_playerHit = true;
-    m_hitShakeTimer = 0.4f;
-    SpawnHitParticles(200.f, 300.f, sf::Color(255, 80, 80));
-    PushMessage(L"对【" + m_player->GetName() + L"】造成 " + std::to_wstring(dmg) + L" 点伤害！");
 
     CheckCombatEnd();
     if (m_result != CombatResult::Ongoing) {
@@ -668,6 +762,12 @@ void CombatState::GiveRewards() {
     // 通知任务系统：击败敌人+1
     if (m_result == CombatResult::Victory) {
         QuestSystem::Instance().UpdateProgress(QuestTargetType::DefeatEnemy, "any", 1);
+        // Boss战特殊通知
+        if (m_isBoss) {
+            QuestSystem::Instance().UpdateProgress(QuestTargetType::DefeatEnemy, "mo_dafu_boss", 1);
+            // 检测Boss击败事件（触发战败对话+旁白）
+            QuestSystem::Instance().CheckBossDefeat("mo_dafu_boss");
+        }
     }
 }
 

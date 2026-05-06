@@ -139,6 +139,42 @@
       "location": "彩霞山",
       "description": "驻守彩霞山山门的七玄门弟子，负责盘查入山人员",
       "relation": 5
+    },
+    {
+      "id": "wang_hufa",
+      "name": "王护法",
+      "title": "七玄门外门护法",
+      "location": "七玄门外门",
+      "cultivation": "练气期",
+      "description": "七玄门外门护法，负责接送入门弟子，性格傲慢但对门内忠心耿耿",
+      "relation": 0
+    },
+    {
+      "id": "yue_tangzhu",
+      "name": "岳堂主",
+      "title": "七玄门百锻堂堂主",
+      "location": "彩霞山",
+      "cultivation": "筑基期",
+      "description": "七玄门百锻堂堂主，负责新弟子的选拔和训练，为人严肃公正",
+      "relation": 0
+    },
+    {
+      "id": "zhang_jun",
+      "name": "张均",
+      "title": "七玄门百锻堂弟子",
+      "location": "七玄门",
+      "cultivation": "练气期",
+      "description": "面容冷峻的百锻堂师兄，看似冷漠实则心细，入门测试中一路保护韩立",
+      "relation": 20
+    },
+    {
+      "id": "wu_yan",
+      "name": "舞岩",
+      "title": "候选弟子",
+      "location": "彩霞山",
+      "cultivation": "凡人",
+      "description": "家境富裕的候选弟子，自小习武，为人高傲自负，仗着表姐夫是副门主走了后门",
+      "relation": -20
     }
   ],
   "locations": [

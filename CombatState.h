@@ -47,9 +47,12 @@ public:
     void OnKeyPressed(sf::Keyboard::Key key);
 
     bool IsVictory() const { return m_result == CombatResult::Victory; }
+    bool IsBoss() const { return m_isBoss; }
     CombatPhase GetPhase() const { return m_phase; }
     int GetExpReward() const { return m_expReward; }
     int GetGoldReward() const { return m_goldReward; }
+
+    void SetBossFlag(bool flag) { m_isBoss = flag; }
 
 private:
     // ===== 核心逻辑 =====
@@ -128,6 +131,7 @@ private:
     float m_hitShakeTimer = 0.f;  // 受击抖动
     bool m_playerHit = false;
     bool m_enemyHit = false;
+    bool m_isBoss = false;        // 是否为Boss战
 
     // 字体
     sf::Font m_font;

@@ -100,6 +100,9 @@ void DialogueState::BuildDialogueTree() {
         else if (m_npcId == "shuoshuren") displayName = L"说书人";
         else if (m_npcId == "xinghai_shouhuzhe") displayName = L"星海守护者";
         else if (m_npcId == "shoumen_dizi") displayName = L"守门弟子";
+        else if (m_npcId == "san_shu")     displayName = L"韩三叔";
+        else if (m_npcId == "zhang_jun")   displayName = L"张均";
+        else if (m_npcId == "wu_yan")      displayName = L"舞岩";
     }
 
     const std::wstring& npcName = displayName;
@@ -130,7 +133,7 @@ void DialogueState::BuildDialogueTree() {
                 L"因为我需要一副新的躯体！\n（墨大夫的面容突然变得狰狞）\n你的身体资质很不错，正好适合我。不要怪我，\n要怪就怪你命不好！",
                 {{L"（摆出战斗姿态）做梦！", [this]() {
                     extern void OnStartCombat(const std::string& enemyId);
-                    OnStartCombat("mortal_thug");
+                    OnStartCombat("mo_dafu_boss");
                     m_finished = true;
                 }}, {L"师父饶命！", [this]() { m_currentNode = 3; }}}
             });
@@ -139,7 +142,7 @@ void DialogueState::BuildDialogueTree() {
                 L"求饶是没用的。我筹划了这么久，岂会因你一句话\n就放弃？来吧，让我看看你这段时间的修炼成果！",
                 {{L"（只能一战了！）", [this]() {
                     extern void OnStartCombat(const std::string& enemyId);
-                    OnStartCombat("mortal_thug");
+                    OnStartCombat("mo_dafu_boss");
                     m_finished = true;
                 }}, {L"逃！", [this]() { m_finished = true; }}}
             });
@@ -249,25 +252,46 @@ void DialogueState::BuildDialogueTree() {
 
     } else if (m_npcId == "wang_hufa" || m_npcId == "王护法") {
         // 王护法 — 七玄门守门护法（原著第2章）
-        m_dialogueNodes.push_back({
-            npcName,
-            L"哼！你就是新来的弟子？最近路上不太平，野狼帮的人\n越来越嚣张了。你没事别到处乱跑，老老实实在门内待着。",
-            {
-                {L"请问护法，七玄门有多少弟子？", [this]() { m_currentNode = 1; }},
-                {L"野狼帮是什么？", [this]() { m_currentNode = 2; }},
-                {L"是，弟子明白", [this]() { m_finished = true; }}
-            }
-        });
-        m_dialogueNodes.push_back({
-            npcName,
-            L"七玄门分内门外门，内门有百锻堂、七绝堂、供奉堂、\n血刃堂四个分堂。外门有飞鸟堂、聚宝堂、四海堂、\n外刃堂。门内弟子三四千人，是本地两大霸主之一！",
-            {{L"多谢护法指点", [this]() { m_currentNode = 0; }}}
-        });
-        m_dialogueNodes.push_back({
-            npcName,
-            L"野狼帮？哼，一伙马贼出身的匪帮！仗着人多势众，\n经常跟我们七玄门抢地盘。真要打起来，他们哪是我们\n的对手！不过你小子还太嫩，遇上了就跑，知道吗？",
-            {{L"...知道了", [this]() { m_currentNode = 0; }}}
-        });
+        // 根据剧情阶段区分对话
+        if (IsQuestAtLeast("quest_008_wolf_attack", QuestStatus::Active) &&
+            !IsQuestAtLeast("quest_008_wolf_attack", QuestStatus::Rewarded)) {
+            // 任务8：野狼帮入侵阶段
+            m_dialogueNodes.push_back({
+                npcName,
+                L"（王护法面色严峻，手持长刀）\n野狼帮的人已经攻过来了！\n韩立，你来得正好，后山那边也出现了敌人。\n去后山击退他们，别让野狼帮从后面包抄我们！",
+                {
+                    {L"是！我这就去后山！", [this]() { m_finished = true; }},
+                    {L"野狼帮有多少人？", [this]() { m_currentNode = 1; }},
+                    {L"我需要做准备", [this]() { m_finished = true; }}
+                }
+            });
+            m_dialogueNodes.push_back({
+                npcName,
+                L"来势汹汹，少说也有百来号人！\n不过你不用担心正面，那里有岳堂主和我顶着。\n你只需去后山清理那些偷袭的杂碎就行。\n小心点，那些人不好对付！",
+                {{L"明白，我这就出发！", [this]() { m_finished = true; }}}
+            });
+        } else {
+            // 普通阶段
+            m_dialogueNodes.push_back({
+                npcName,
+                L"哼！你就是新来的弟子？最近路上不太平，野狼帮的人\n越来越嚣张了。你没事别到处乱跑，老老实实在门内待着。",
+                {
+                    {L"请问护法，七玄门有多少弟子？", [this]() { m_currentNode = 1; }},
+                    {L"野狼帮是什么？", [this]() { m_currentNode = 2; }},
+                    {L"是，弟子明白", [this]() { m_finished = true; }}
+                }
+            });
+            m_dialogueNodes.push_back({
+                npcName,
+                L"七玄门分内门外门，内门有百锻堂、七绝堂、供奉堂、\n血刃堂四个分堂。外门有飞鸟堂、聚宝堂、四海堂、\n外刃堂。门内弟子三四千人，是本地两大霸主之一！",
+                {{L"多谢护法指点", [this]() { m_currentNode = 0; }}}
+            });
+            m_dialogueNodes.push_back({
+                npcName,
+                L"野狼帮？哼，一伙马贼出身的匪帮！仗着人多势众，\n经常跟我们七玄门抢地盘。真要打起来，他们哪是我们\n的对手！不过你小子还太嫩，遇上了就跑，知道吗？",
+                {{L"...知道了", [this]() { m_currentNode = 0; }}}
+            });
+        }
 
     } else if (m_npcId == "yue_tangzhu" || m_npcId == "岳堂主") {
         // 岳堂主 — 考核主事（原著第4章）
@@ -512,6 +536,159 @@ void DialogueState::BuildDialogueTree() {
             {{L"好的，那我走了", [this]() { m_finished = true; }}}
         });
 
+    } else if (m_npcId == "san_shu") {
+        // 韩三叔 — 原著第1-2章：引路人
+        m_dialogueNodes.push_back({
+            npcName,
+            L"小立啊！到了七玄门要好好听师父的话。\n三叔我能帮你的就这么多了，以后的路要靠你自己走了。",
+            {
+                {L"三叔，七玄门是什么样的人家？", [this]() { m_currentNode = 1; }},
+                {L"我一定不会给三叔丢脸的！", [this]() { m_currentNode = 2; }},
+                {L"三叔保重，我去了", [this]() { m_finished = true; }}
+            }
+        });
+        m_dialogueNodes.push_back({
+            npcName,
+            L"七玄门啊...那可是咱们方圆数百里数一数二的大门派！\n二百年前由七绝上人创立，曾经雄霸整个镜州呢。\n后来虽然没落了，但在这彩霞山一带，还是没人敢惹的。\n你只要进了内门，每月能领一两多银子，吃喝不愁！",
+            {{L"（听起来确实不错...）", [this]() { m_currentNode = 0; }}}
+        });
+        m_dialogueNodes.push_back({
+            npcName,
+            L"好！有志气！你爹娘那边我会照看的，你放心去吧。\n记住：做人要老实，遇事要忍让，别和其他人起争执。\n要是真受了欺负...也别太委屈自己。",
+            {{L"多谢三叔指点", [this]() { m_finished = true; }}}
+        });
+
+    } else if (m_npcId == "zhang_jun") {
+        // 张均 — 冷面师兄（原著第4章）
+        m_dialogueNodes.push_back({
+            npcName,
+            L"（张均面无表情地看着你，眼神冷淡）\n...你就是上次通过测试的那个记名弟子？",
+            {
+                {L"是的，多谢师兄上次在崖壁上搭救", [this]() { m_currentNode = 1; }},
+                {L"师兄有什么事吗？", [this]() { m_currentNode = 2; }},
+                {L"...（不知该说什么）", [this]() { m_currentNode = 3; }}
+            }
+        });
+        m_dialogueNodes.push_back({
+            npcName,
+            L"（张均微微点头）\n不必记在心上。那是我的职责。\n...你跟着墨大夫好好修炼吧，他医术高明，能学到东西。\n但记住，修仙界不比村里，凡事多留个心眼。",
+            {{L"弟子谨记师兄教诲", [this]() { m_finished = true; }}}
+        });
+        m_dialogueNodes.push_back({
+            npcName,
+            L"...没什么。只是看你资质尚可，别浪费了。\n七玄门里不是所有人都靠真本事上位的，\n你好自为之。",
+            {{L"（他是在暗示舞岩的事？）", [this]() { m_currentNode = 0; }}}
+        });
+        m_dialogueNodes.push_back({
+            npcName,
+            L"（张均不再说话，转身离去）\n...好自为之。",
+            {{L"...谢谢师兄", [this]() { m_finished = true; }}}
+        });
+
+    } else if (m_npcId == "wu_yan") {
+        // 舞岩 — 骄横弟子（原著第3-4章）
+        bool afterTest = IsQuestAtLeast("quest_001_start", QuestStatus::Rewarded);
+        if (afterTest) {
+            // 入门测试后 — 舞岩已经进了七绝堂，更加傲慢
+            m_dialogueNodes.push_back({
+                npcName,
+                L"（舞岩穿着一身崭新的锦缎衣裳，手持一把镶玉长剑）\n哟，这不是那个差点没爬上来的记名弟子吗？\n怎么，还在跟那个老头子学医术呢？",
+                {
+                    {L"（不想搭理他）", [this]() { m_currentNode = 1; }},
+                    {L"你管我跟谁学？", [this]() { m_currentNode = 2; }},
+                    {L"舞师兄有何指教？", [this]() { m_currentNode = 3; }}
+                }
+            });
+            m_dialogueNodes.push_back({
+                npcName,
+                L"（舞岩不屑地哼了一声，转身就走）\n土包子就是土包子，跟你说话都掉价。",
+                {{L"...（握紧拳头）", [this]() { m_finished = true; }}}
+            });
+            m_dialogueNodes.push_back({
+                npcName,
+                L"呵，嘴还挺硬！我可是进了七绝堂的核心弟子！\n你这种连内门都差点进不来的货色，也配跟我较劲？\n要不是我表姐夫是副门主...咳，我跟你说这些干什么。",
+                {{L"（他差点说漏了什么）", [this]() { m_currentNode = 0; }}}
+            });
+            m_dialogueNodes.push_back({
+                npcName,
+                L"（舞岩得意地扬了扬下巴）\n没什么，就是提醒你一句：以后见到我客气点。\n不然...哼，你知道后果的。",
+                {{L"...", [this]() { m_finished = true; }}}
+            });
+        } else {
+            // 初到彩霞山 — 还没测试
+            m_dialogueNodes.push_back({
+                npcName,
+                L"（一个穿着华丽锦衣的少年上下打量着你）\n你就是那个从乡下来的？啧啧...这一身土味。\n明天的测试你肯定过不了，趁早回家种地去吧！",
+                {
+                    {L"走着瞧", [this]() { m_currentNode = 1; }},
+                    {L"...（默默记住这个人）", [this]() { m_finished = true; }},
+                    {L"你是谁？", [this]() { m_currentNode = 2; }}
+                }
+            });
+            m_dialogueNodes.push_back({
+                npcName,
+                L"（舞岩冷笑一声）\n好，我等着看你在炼骨崖上哭爹喊娘的样子！",
+                {{L"（此人来者不善）", [this]() { m_finished = true; }}}
+            });
+            m_dialogueNodes.push_back({
+                npcName,
+                L"我叫舞岩，我爸在城里开了三家武馆！\n我从小练武，岂是你们这些泥腿子能比的？\n看着吧，明天的第一名肯定是我！",
+                {{L"原来只是个武馆少爷", [this]() { m_currentNode = 0; }}}
+            });
+        }
+
+    } else if (m_npcId == "shuoshuren") {
+        // 说书人 — 七玄门背景故事传播者
+        m_dialogueNodes.push_back({
+            npcName,
+            L"（一位须发花白的老人正坐在茶摊边，手摇折扇）\n这位小友，可有兴趣听老夫讲讲七玄门的往事？",
+            {
+                {L"请老先生赐教", [this]() { m_currentNode = 1; }},
+                {L"七玄门的历史？说来听听", [this]() { m_currentNode = 2; }},
+                {L"改天再来听", [this]() { m_finished = true; }}
+            }
+        });
+        m_dialogueNodes.push_back({
+            npcName,
+            L"话说二百年前，一位自称「七绝上人」的奇人横空出世！\n此人武功盖世，创立了七玄门，曾一度称霸镜州数十年！\n连越国其他大门派都不敢轻视。只可惜...",
+            {{L"可惜什么？", [this]() { m_currentNode = 2; }}}
+        });
+        m_dialogueNodes.push_back({
+            npcName,
+            L"七绝上人病故后，七玄门就一落千丈了。被其他门派\n联手挤出了镜州首府，百年前才搬到这彩霞山落脚。\n如今的七玄门，虽然还有三四千弟子，但也就是个\n本地小势力了。跟野狼帮你来我往的，好不热闹。",
+            {
+                {L"野狼帮是什么？", [this]() { m_currentNode = 3; }},
+                {L"原来七玄门还有这样的过往...", [this]() { m_finished = true; }}
+            }
+        });
+        m_dialogueNodes.push_back({
+            npcName,
+            L"野狼帮啊...那是马贼出身的一伙狠人！被官府招安后\n就成了帮派，但凶狠嗜血的劲头一点没减。论打仗，\n七玄门还真不一定打得过他们。好在野狼帮不会经营，\n论富足还是七玄门这边强得多。",
+            {{L"多谢老先生解惑", [this]() { m_finished = true; }}}
+        });
+
+    } else if (m_npcId == "shoumen_dizi") {
+        // 守门弟子 — 彩霞山门卫
+        m_dialogueNodes.push_back({
+            npcName,
+            L"站住！此地是七玄门重地，闲人不得擅入！\n...哦？你是新来的候选弟子？\n进去吧，沿着山路一直走，岳堂主在山顶等你们。",
+            {
+                {L"请问师兄，山上有什么规矩？", [this]() { m_currentNode = 1; }},
+                {L"多谢师兄", [this]() { m_finished = true; }},
+                {L"山顶远不远？", [this]() { m_currentNode = 2; }}
+            }
+        });
+        m_dialogueNodes.push_back({
+            npcName,
+            L"规矩不多但都很严：不準私自下山，不準在山上斗殴，\n见到长老堂主要行礼。最要紧的一条——别得罪七绝堂\n的人，他们是门主的心尖子。",
+            {{L"记下了，多谢师兄", [this]() { m_finished = true; }}}
+        });
+        m_dialogueNodes.push_back({
+            npcName,
+            L"说远不远，说近不近。沿着山路走两柱香的工夫就到了。\n明天一早开始选拔测试，今晚好好休息。",
+            {{L"好的", [this]() { m_finished = true; }}}
+        });
+
     } else {
         // 默认对话
         m_dialogueNodes.push_back({
@@ -554,7 +731,19 @@ void DialogueState::Enter() {
         else if (m_npcId == "shuoshuren") nameW = L"说书人";
         else if (m_npcId == "xinghai_shouhuzhe") nameW = L"星海守护者";
         else if (m_npcId == "shoumen_dizi") nameW = L"守门弟子";
+        else if (m_npcId == "san_shu")     nameW = L"韩三叔";
+        else if (m_npcId == "zhang_jun")   nameW = L"张均";
+        else if (m_npcId == "wu_yan")      nameW = L"舞岩";
         m_namePlate.setString(L"— " + nameW + L" —");
+    }
+
+    // Boss战后检测：如果墨大夫已被击败，立即关闭对话让WorldMapState处理BossDefeatDialogue
+    if (m_npcId == "mo_dafu") {
+        auto* pendingBoss = QuestSystem::Instance().GetPendingBossDefeat();
+        if (pendingBoss) {
+            GameStateManager::Instance().PopState();
+            return;
+        }
     }
 }
 
@@ -636,58 +825,166 @@ void DialogueState::AddLog(const std::wstring& msg) {
 void DialogueState::Render(sf::RenderWindow& window) {
     window.clear(sf::Color(15, 18, 28));
 
+    // === 对话框背景（改进布局：NPC对话区+玩家选项区明确分离）===
+    // 布局规划:
+    // ┌──────────────────────────────────────┐
+    // │ 名称牌 (y=30~52)                      │
+    // │ ──分隔线── (y=55)                     │
+    // │ NPC对话内容区域 (y=62~320)            │
+    // │ （自动换行，限制行数防溢出）           │
+    // │ ──分隔线── (选项上方)                 │
+    // │ 选项列表 / 提示 (选项区域)            │
+    // │ 按 Space/Enter 继续                   │
+    // └──────────────────────────────────────┘
+
+    int optCount = 0;
+    if (m_currentNode < (int)m_dialogueNodes.size() && m_showingOptions) {
+        optCount = (int)m_dialogueNodes[m_currentNode].options.size();
+    }
+
+    float boxW = 740.f;
+    float boxX = 30.f;
+    float boxY = 60.f;
+    float contentAreaH = 200.f;     // NPC对话文字区域高度（增大）
+    float optAreaH = m_showingOptions ? (optCount * 30.f + 10.f) : 30.f;
+    float boxH = 50.f + contentAreaH + optAreaH + 30.f;
+
     // 对话框背景
-    sf::RectangleShape dialogBox(sf::Vector2f(740.f, 280.f));
+    sf::RectangleShape dialogBox(sf::Vector2f(boxW, boxH));
     dialogBox.setFillColor(sf::Color(25, 30, 45, 245));
-    dialogBox.setPosition(30.f, 100.f);
+    dialogBox.setPosition(boxX, boxY);
     dialogBox.setOutlineThickness(2.f);
     dialogBox.setOutlineColor(sf::Color(70, 90, 120));
     window.draw(dialogBox);
 
     // 名称牌
-    m_namePlate.setPosition(50.f, 110.f);
+    m_namePlate.setPosition(boxX + 20.f, boxY + 10.f);
     window.draw(m_namePlate);
 
-    // 分隔线
-    sf::RectangleShape sepLine(sf::Vector2f(700.f, 1.f));
+    // 分隔线（名字下方）
+    sf::RectangleShape sepLine(sf::Vector2f(boxW - 40.f, 1.f));
     sepLine.setFillColor(sf::Color(60, 75, 95));
-    sepLine.setPosition(50.f, 142.f);
+    sepLine.setPosition(boxX + 20.f, boxY + 38.f);
     window.draw(sepLine);
 
-    // 对话内容
+    // NPC对话内容（自动换行 + 行数限制防溢出）
     if (m_currentNode < (int)m_dialogueNodes.size()) {
-        m_dialogueText.setString(m_dialogueNodes[m_currentNode].text);
-        m_dialogueText.setPosition(50.f, 155.f);
-        // 支持自动换行
-        m_dialogueText.setLineSpacing(4.f);
-        window.draw(m_dialogueText);
+        const std::wstring& rawText = m_dialogueNodes[m_currentNode].text;
+
+        // 将原始文本按\n分割，再对每行做自动换行（每行最多36个中文字符）
+        int maxCharsPerLine = 36;
+        std::vector<std::wstring> wrappedLines;
+
+        // 逐段处理
+        size_t pos = 0;
+        while (pos < rawText.size()) {
+            size_t nlPos = rawText.find(L'\n', pos);
+            std::wstring segment = (nlPos != std::wstring::npos)
+                ? rawText.substr(pos, nlPos - pos)
+                : rawText.substr(pos);
+
+            // 对这段文本做自动换行
+            std::wstring curLine;
+            for (wchar_t ch : segment) {
+                curLine += ch;
+                if ((int)curLine.size() >= maxCharsPerLine) {
+                    // 在标点处断行
+                    size_t bp = curLine.find_last_of(L" ，。、！？：；）】》");
+                    if (bp != std::wstring::npos && bp > 2) {
+                        wrappedLines.push_back(curLine.substr(0, bp + 1));
+                        curLine = curLine.substr(bp + 1);
+                    } else {
+                        wrappedLines.push_back(curLine);
+                        curLine.clear();
+                    }
+                }
+            }
+            if (!curLine.empty()) wrappedLines.push_back(curLine);
+
+            if (nlPos == std::wstring::npos) break;
+            pos = nlPos + 1;
+        }
+
+        // 限制行数：内容区域最多容纳的行数
+        float lineH = 22.f;
+        float maxLines = (contentAreaH - 10.f) / lineH;
+        int maxLinesInt = std::max(1, (int)maxLines);
+        if ((int)wrappedLines.size() > maxLinesInt) {
+            wrappedLines.resize(maxLinesInt);
+            if (!wrappedLines.empty()) wrappedLines.back() += L"...";
+        }
+
+        // 区分NPC对话和玩家对话（以"「"或"「"开头的为玩家对话）
+        sf::Text dlgText;
+        dlgText.setFont(m_font);
+        dlgText.setCharacterSize(16);
+        dlgText.setLineSpacing(3.f);
+
+        float textY = boxY + 48.f;
+        float maxTextY = boxY + 38.f + contentAreaH - 5.f;
+
+        for (const auto& ln : wrappedLines) {
+            if (textY + lineH > maxTextY) break;
+
+            // 检测是否为玩家台词（以"「"开头的引号内容）
+            bool isPlayerLine = false;
+            if (ln.find(L"「") != std::wstring::npos || ln.find(L"「") != std::wstring::npos) {
+                isPlayerLine = true;
+            }
+
+            dlgText.setString(ln);
+            if (isPlayerLine) {
+                dlgText.setFillColor(sf::Color(120, 220, 255));  // 玩家台词用蓝色
+            } else {
+                dlgText.setFillColor(sf::Color(240, 240, 230));  // NPC台词用白色
+            }
+            dlgText.setPosition(boxX + 25.f, textY);
+            window.draw(dlgText);
+            textY += lineH;
+        }
     }
 
-    // 选项列表
+    // 选项分隔线
+    float optSepY = boxY + 38.f + contentAreaH + 8.f;
+    sf::RectangleShape optSepLine(sf::Vector2f(boxW - 40.f, 1.f));
+    optSepLine.setFillColor(sf::Color(50, 65, 85));
+    optSepLine.setPosition(boxX + 20.f, optSepY);
+    window.draw(optSepLine);
+
+    // 选项列表（动态位置，限制4个）
+    float optStartY = optSepY + 8.f;
     if (m_showingOptions && m_currentNode < (int)m_dialogueNodes.size()) {
         const auto& opts = m_dialogueNodes[m_currentNode].options;
         for (size_t i = 0; i < opts.size() && i < 4; ++i) {
             std::wstring prefix = ((int)i == m_selectedOption) ? L"▶ " : L"  ";
-            m_optionText[i].setString(prefix + opts[i].text);
+            // 选项文本也做截断防溢出
+            std::wstring optStr = opts[i].text;
+            if ((int)optStr.size() > 30) {
+                optStr = optStr.substr(0, 28) + L"...";
+            }
+            m_optionText[i].setString(prefix + optStr);
+            m_optionText[i].setPosition(boxX + 40.f, optStartY + i * 30.f);
             window.draw(m_optionText[i]);
         }
     } else {
         m_hintText.setString(L"按 Space/Enter 继续...");
     }
 
-    m_hintText.setPosition(550.f, 558.f);
+    // 操作提示（对话框右下角内侧）
+    m_hintText.setPosition(boxX + boxW - 200.f, boxY + boxH - 25.f);
     window.draw(m_hintText);
 
     // 获得物品/功法的提示（对话框上方显示）
     if (m_logTimer > 0.f && !m_lastLog.empty()) {
         m_logText.setString(L"✦ " + m_lastLog + L" ✦");
-        float alpha = std::min(1.f, m_logTimer / 1.f);  // 渐隐效果
+        float alpha = std::min(1.f, m_logTimer / 1.f);
         m_logText.setFillColor(sf::Color(
             static_cast<sf::Uint8>(100 + 155 * alpha),
             static_cast<sf::Uint8>(255 * alpha),
             static_cast<sf::Uint8>(100 + 100 * alpha),
             static_cast<sf::Uint8>(255 * alpha)
         ));
+        m_logText.setPosition(240.f, 20.f);
         window.draw(m_logText);
     }
 }

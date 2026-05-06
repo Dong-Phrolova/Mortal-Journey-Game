@@ -100,6 +100,7 @@ public:
     // 添加/清除 NPC
     void AddNPC(const MapNPC& npc);
     void ClearNPCs();
+    void RemoveNPC(int id);  // 按ID移除NPC
 
     // 渲染所有 NPC
     void RenderNPCs(sf::RenderTarget& target, const sf::Vector2f& cameraOffset,

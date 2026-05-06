@@ -225,9 +225,12 @@ void QuestUIState::Render(sf::RenderWindow& window) {
     // 操作提示
     window.draw(m_hintText);
 
-    // 旁白显示
+    // 旁白显示（在任务界面中如果触发了旁白，直接确认，因为会在WorldMapState中显示）
     auto* nar = qs.GetCurrentNarration();
-    if (nar) {
+    if (nar && qs.IsNarrationWaitingConfirm()) {
+        // 任务界面中不显示旁白，等退出后会自动在地图界面显示
+    } else if (nar) {
+        // 非等待确认模式（自动消失型）- 保持原逻辑
         float elapsed = qs.GetNarrationTimer();
         float dur = nar->duration > 0.f ? nar->duration : 4.f;
         float alphaRatio = std::max(0.f, std::min(1.f, elapsed / dur));

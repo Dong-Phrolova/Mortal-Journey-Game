@@ -49,9 +49,9 @@ void GameSession::NewGame() {
 
     // 重置宝箱和位置
     m_openedChests.clear();
-    m_currentMapId = "qixuanmen";
+    m_currentMapId = "qingniu_town";
     m_playerX = 12;
-    m_playerY = 18;
+    m_playerY = 6;
 }
 
 // ============ 存档 ============

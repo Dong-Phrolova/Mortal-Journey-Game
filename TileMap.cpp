@@ -51,6 +51,15 @@ void TileMap::ClearNPCs() {
     m_npcs.clear();
 }
 
+void TileMap::RemoveNPC(int id) {
+    for (auto it = m_npcs.begin(); it != m_npcs.end(); ++it) {
+        if (it->id == id) {
+            m_npcs.erase(it);
+            break;
+        }
+    }
+}
+
 // ============================================================
 //  渲染地图
 // ============================================================

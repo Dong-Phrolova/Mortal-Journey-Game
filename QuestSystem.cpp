@@ -33,34 +33,43 @@ void QuestSystem::Reset() {
     m_quests.clear();
     m_lastCompletedQuestName.clear();
     m_narrationTimer = 0.f;
+    m_narrationWaitingConfirm = false;
     m_currentNarrationText.clear();
+    m_pendingLocationNarrations.clear();
+    m_pendingBossDefeat = PendingBossDefeat();
 }
 
 void QuestSystem::DefineMainQuests() {
-    // ===== 任务1: 初入仙途 =====
+    // ===== 任务1: 初到青牛镇（原著第1-2章）=====
     {
         QuestData q;
         q.id = "quest_001_start";
-        q.name = "初入仙途";
-        q.description = "前往【神手谷】寻找墨大夫学习长春功（七玄门外门西门出城即到）";
+        q.name = "初到青牛镇";
+        q.description = "你跟随三叔来到了青牛镇。去韩家小院找三叔，\n然后准备经由七玄门前往神手谷拜师学艺！";
         q.status = QuestStatus::Locked;
 
         QuestObjective obj1;
-        obj1.description = "找到墨大夫并对话";
+        obj1.description = "与三叔对话了解七玄门";
         obj1.type = QuestTargetType::TalkToNPC;
-        obj1.targetId = "mo_dafu";
+        obj1.targetId = "san_shu";
         obj1.requiredCount = 1;
         q.objectives.push_back(obj1);
 
         QuestObjective obj2;
-        obj2.description = "学习【长春功】";
-        obj2.type = QuestTargetType::LearnTechnique;
-        obj2.targetId = "changchun";
+        obj2.description = "前往七玄门，与王护法对话";
+        obj2.type = QuestTargetType::TalkToNPC;
+        obj2.targetId = "wang_hufa";
         q.objectives.push_back(obj2);
+
+        QuestObjective obj3;
+        obj3.description = "在神手谷学习【长春功】";
+        obj3.type = QuestTargetType::LearnTechnique;
+        obj3.targetId = "changchun";
+        q.objectives.push_back(obj3);
 
         q.reward.gold = 50;
         q.reward.exp = 20;
-        q.onAcceptNarration = "story_start";
+        q.onAcceptNarration = "story_arrive_qingniu";
         q.onCompleteNarration = "story_learn_technique";
 
         m_quests.push_back(q);
@@ -146,7 +155,8 @@ void QuestSystem::DefineMainQuests() {
 
         q.reward.gold = 60;
         q.reward.exp = 25;
-        q.onAcceptNarration = "story_visit_market";
+        // 旁白改为到达坊市时触发（不在接取时触发）
+        // q.onAcceptNarration = "story_visit_market";
 
         m_quests.push_back(q);
     }
@@ -210,10 +220,9 @@ void QuestSystem::DefineMainQuests() {
 
         q.reward.gold = 100;
         q.reward.exp = 50;
-        // 神秘小瓶已在后山宝箱中获得，不再作为奖励重复发放
         q.onCompleteNarration = "story_found_bottle";
-        q.onCompleteNarration = "story_found_bottle";
-        q.onAcceptNarration = "story_hint_bottle";
+        // 不在接取时触发旁白，改为到达后山+走到小瓶附近时触发
+        // q.onAcceptNarration = "story_hint_bottle";
 
         m_quests.push_back(q);
     }
@@ -223,7 +232,7 @@ void QuestSystem::DefineMainQuests() {
         QuestData q;
         q.id = "quest_007_mo_scheme";
         q.name = "墨大夫的异样";
-        q.description = "墨大夫最近行为古怪，经常闭关不出。\n去【神手谷】找张铁聊聊，看看他有没有发现什么。";
+        q.description = "墨大夫最近行为古怪，经常闭关不出。\n去【神手谷】找张铁聊聊，然后调查炼骨崖。";
         q.status = QuestStatus::Locked;
         q.prerequisiteQuests.push_back("quest_006_bottle");
 
@@ -234,7 +243,7 @@ void QuestSystem::DefineMainQuests() {
         q.objectives.push_back(obj1);
 
         QuestObjective obj2;
-        obj2.description = "调查炼骨崖（神手谷北门进入）";
+        obj2.description = "调查炼骨崖（从神手谷北门进入）";
         obj2.type = QuestTargetType::ExploreLocation;
         obj2.targetId = "liangu_cliff";
         q.objectives.push_back(obj2);
@@ -284,12 +293,12 @@ void QuestSystem::DefineMainQuests() {
         QuestData q;
         q.id = "quest_009_mo_truth";
         q.name = "墨大夫的真相";
-        q.description = "野狼帮入侵的幕后似乎有墨大夫的影子...\n墨大夫的真正目的是什么？去神手谷与他当面对质！";
+        q.description = "野狼帮入侵的幕后似乎有墨大夫的影子...\n墨大夫已不在神手谷，去【炼骨崖】找他当面对质！";
         q.status = QuestStatus::Locked;
         q.prerequisiteQuests.push_back("quest_008_wolf_attack");
 
         QuestObjective obj1;
-        obj1.description = "回神手谷与墨大夫对质（注意：这可能会触发战斗！）";
+        obj1.description = "前往炼骨崖与墨大夫对质（注意：这可能会触发战斗！）";
         obj1.type = QuestTargetType::TalkToNPC;
         obj1.targetId = "mo_dafu";
         q.objectives.push_back(obj1);
@@ -490,6 +499,21 @@ bool QuestSystem::AcceptQuest(const std::string& questId) {
         SetNarration(q->onAcceptNarration, NarrationEvent::Type::Story, 4.f);
     }
 
+    // 特定任务：条件旁白（到达指定地点才触发）
+    if (q->id == "quest_004_market") {
+        AddLocationNarration("jiazhou_market", "story_visit_market");
+    }
+    // 任务6：到达后山时触发提示旁白
+    if (q->id == "quest_006_bottle") {
+        AddLocationNarration("qixuanmen_back", "story_hint_bottle");
+    }
+    // 任务9：注册墨大夫Boss击败事件
+    if (q->id == "quest_009_mo_truth") {
+        AddPendingBossDefeat("mo_dafu_boss",
+            L"（墨大夫倒在地上，面容扭曲）\n不可能...我筹划了数十年...\n怎么会败在你这个黄毛小子手上！\n\n（墨大夫的身形逐渐变得透明，灵力四散消逸...）",
+            "story_mo_defeated");
+    }
+
     return true;
 }
 
@@ -575,6 +599,56 @@ void QuestSystem::CheckLocation(const std::string& mapId, int tileX, int tileY) 
 
         CheckCompletion(q.id);
     }
+
+    // 检查条件旁白：到达指定地图时触发
+    for (auto& pn : m_pendingLocationNarrations) {
+        if (!pn.triggered && pn.mapId == mapId) {
+            pn.triggered = true;
+            SetNarration(pn.narrationKey, NarrationEvent::Type::Story, 4.f);
+        }
+    }
+}
+
+void QuestSystem::AddLocationNarration(const std::string& mapId, const std::string& narrationKey) {
+    // 避免重复
+    for (const auto& pn : m_pendingLocationNarrations) {
+        if (pn.mapId == mapId && pn.narrationKey == narrationKey) return;
+    }
+    PendingLocationNarration pn;
+    pn.mapId = mapId;
+    pn.narrationKey = narrationKey;
+    pn.triggered = false;
+    m_pendingLocationNarrations.push_back(pn);
+}
+
+void QuestSystem::ClearLocationNarrations() {
+    m_pendingLocationNarrations.clear();
+}
+
+void QuestSystem::AddPendingBossDefeat(const std::string& bossId, const std::wstring& dialogue, const std::string& narrationKey) {
+    m_pendingBossDefeat.bossId = bossId;
+    m_pendingBossDefeat.defeatDialogue = dialogue;
+    m_pendingBossDefeat.narrationKey = narrationKey;
+    m_pendingBossDefeat.triggered = false;
+}
+
+bool QuestSystem::CheckBossDefeat(const std::string& enemyId) {
+    if (m_pendingBossDefeat.triggered) return false;
+    if (m_pendingBossDefeat.bossId == enemyId) {
+        m_pendingBossDefeat.triggered = true;
+        return true;
+    }
+    return false;
+}
+
+const QuestSystem::PendingBossDefeat* QuestSystem::GetPendingBossDefeat() const {
+    if (m_pendingBossDefeat.triggered && !m_pendingBossDefeat.bossId.empty())
+        return &m_pendingBossDefeat;
+    return nullptr;
+}
+
+void QuestSystem::ClearPendingBossDefeat() {
+    m_pendingBossDefeat = PendingBossDefeat();
 }
 
 // ============================================================
@@ -717,7 +791,7 @@ bool QuestSystem::HasCompletedUnclaimed() const {
 // ============================================================
 
 QuestSystem::NarrationEvent* QuestSystem::GetCurrentNarration() {
-    if (m_narrationTimer > 0.f)
+    if (m_narrationTimer > 0.f || m_narrationWaitingConfirm)
         return &m_currentNarration;
     return nullptr;
 }
@@ -726,12 +800,30 @@ float QuestSystem::GetNarrationTimer() const {
     return m_narrationTimer;
 }
 
+bool QuestSystem::IsNarrationWaitingConfirm() const {
+    return m_narrationWaitingConfirm;
+}
+
+void QuestSystem::ConfirmNarration() {
+    if (m_narrationWaitingConfirm) {
+        m_narrationWaitingConfirm = false;
+        m_narrationTimer = 0.f;
+        m_currentNarrationText.clear();
+    }
+}
+
 void QuestSystem::SetNarration(const std::string& key, NarrationEvent::Type type, float dur) {
     static const std::map<std::string, std::wstring> NARRATIONS = {
+        {"story_leave_home",
+         L"（韩立站在村口，回头望了望渐行渐远的小山村。\n母亲正站在土墙边偷偷抹着眼泪，父亲吧嗒吧嗒抽着旱烟。）\n\n「等我挣了钱，就马上回来！」\n——年幼的韩立在心里暗暗发誓。"},
+        {"story_arrive_qingniu",
+         L"马车一路颠簸，三天后终于到了一个小镇——青牛镇。\n「这就是三叔说的那个镇子啊...」\n韩立好奇地打量着这个比村子大得多的镇子。"},
+        {"story_wang_hufa_arrives",
+         L"第三天傍晚，一辆漆黑油亮的马车停在了酒楼门口。\n车上插着一面绣着「玄」字的小三角黑旗。\n「七玄门的人来了！」三叔神色一紧，连忙迎了上去。"},
         {"story_start",
          L"「韩立啊，从今天起，你就是我墨大夫的弟子了。」\n——墨大夫的声音低沉而有力"},
         {"story_learn_technique",
-         L"★ 功法【长春功】入手！\n\n（韩立内心：这口诀...怎么感觉体内有一股热流在涌动？）"},
+         L"★ 功法【长春功】入手！\n\n（韩立内心：这口诀...怎么感觉体内有一股凉意在涌动？）"},
         {"story_cultivate_progress",
          L"（韩立内心：修炼果然不是一蹴而就的事...但每次都能感觉到灵气在经脉中流动。）\n\n★ 主线任务更新！"},
         {"story_first_victory",
@@ -741,15 +833,17 @@ void QuestSystem::SetNarration(const std::string& key, NarrationEvent::Type type
         {"story_breakthrough",
          L"★★★ 突破成功！★★★\n\n一股磅礴的力量涌遍全身，韩立感觉整个世界都变得清晰起来。\n「这便是...修仙者的世界吗？」"},
         {"story_found_bottle",
-         L"★ 获得【神秘小瓶】！\n\n（韩立盯着手中这个沾满泥土的绿色小瓶，瓶身有墨绿色的叶状花纹。）\n「这东西...看起来有些年头了。」"},
+         L"★ 获得【神秘小瓶】！\n\n（韩立盯着手中这个沾满泥土的绿色小瓶，瓶身有墨绿色的叶状花纹。）\n「这东西...看起来有些年头了，沉甸甸的，不像是瓷的。」"},
         {"story_hint_bottle",
-         L"（韩立在树林中漫步，脚下一滑，似乎踢到了什么硬物...）\n\n★ 前往后山调查"},
+         L"（韩立沿着小路走去，脚下突然踢到一个硬物，\n疼得他蹲在地上好半天才缓过劲来...）\n\n★ 调查踢到的是什么东西"},
         {"story_mo_scheme",
          L"（韩立内心：墨大夫这些日子总是神神秘秘的...\n张铁修炼的那门象甲功也是霸道得很，总觉得哪里不对劲。）"},
         {"story_wolf_defeated",
          L"★ 击退野狼帮！\n\n王护法拍了拍你的肩膀：「好小子，没给七玄门丢脸！」\n但远处神手谷的方向，似乎隐隐传来异样的气息..."},
         {"story_mo_final",
          L"（韩立回想起墨大夫教自己修炼的每一个细节，背后不禁冒出一阵冷汗...\n「原来...他一直都在打我的主意？」）\n\n★ 七玄门已非久留之地！"},
+        {"story_mo_defeated",
+         L"（墨大夫的身影化作一缕黑烟，消散在炼骨崖的风中...）\n\n韩立站在崖边，久久无言。\n那些年跟着墨大夫学医的日子，原来都是一场精心设计的骗局。\n\n「从今天起，我要靠自己的力量走下去。」\n\n★ 墨大夫已被击败！七玄门的危机解除了。\n★ 主线任务已更新！"},
         {"story_huangfengu_entry",
          L"★ 加入黄枫谷！\n\n黄枫谷的山门巍峨耸立，云雾缭绕间隐约可见仙鹤飞舞。\n「这里...才是我真正应该待的地方。」"},
         {"story_xuese_done",
@@ -763,7 +857,9 @@ void QuestSystem::SetNarration(const std::string& key, NarrationEvent::Type type
     m_currentNarration.text = key;
     m_currentNarration.duration = dur;
     m_currentNarration.type = type;
-    m_narrationTimer = dur;
+    m_currentNarration.waitForConfirm = true;  // 默认等待玩家确认
+    m_narrationTimer = dur;  // 保留时长用于渐入动画等
+    m_narrationWaitingConfirm = true;
 
     // 也存储 wstring 到 text 字段（渲染时用）
     auto it = NARRATIONS.find(key);
@@ -776,6 +872,9 @@ void QuestSystem::SetNarration(const std::string& key, NarrationEvent::Type type
 }
 
 void QuestSystem::UpdateNarration(float dt) {
+    // 等待确认模式下不自动消失
+    if (m_narrationWaitingConfirm) return;
+
     if (m_narrationTimer > 0.f) {
         m_narrationTimer -= dt;
         if (m_narrationTimer <= 0.f) {
@@ -786,10 +885,11 @@ void QuestSystem::UpdateNarration(float dt) {
 
 void QuestSystem::ClearNarration() {
     m_narrationTimer = 0.f;
+    m_narrationWaitingConfirm = false;
 }
 
 std::wstring QuestSystem::GetCurrentNarrationText() const {
-    if (m_narrationTimer > 0.f)
+    if (m_narrationTimer > 0.f || m_narrationWaitingConfirm)
         return m_currentNarrationText;
     return L"";
 }

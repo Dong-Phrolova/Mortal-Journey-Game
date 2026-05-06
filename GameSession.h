@@ -25,9 +25,9 @@ public:
     const std::set<std::string>& GetOpenedChests() const { return m_openedChests; }
 
     // 当前位置（用于读档后恢复）
-    std::string m_currentMapId = "qixuanmen";
+    std::string m_currentMapId = "qingniu_town";
     int m_playerX = 12;
-    int m_playerY = 18;
+    int m_playerY = 6;
 
 private:
     GameSession();

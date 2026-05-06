@@ -12,6 +12,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <algorithm>
+#include <set>
 #define NOMINMAX
 #include <Windows.h>
 
@@ -99,11 +100,8 @@ void WorldMapState::BuildQixuanmen() {
     map.tiles[map.height-1][12].warpTargetX = 12;
     map.tiles[map.height-1][12].warpTargetY = 1;  // 落点在北门内侧Path格
 
-    // 东门（右侧中央） → 通往黄枫谷
-    map.tiles[10][map.width-1].type = TileType::Door;
-    map.tiles[10][map.width-1].warpTargetMap = "huangfengu";
-    map.tiles[10][map.width-1].warpTargetX = 2;
-    map.tiles[10][map.width-1].warpTargetY = 10;  // 落点在门前一格
+    // 东门（右侧中央） — 原通往黄枫谷，已删除
+    map.tiles[10][map.width-1].type = TileType::Wall;
 
     // 西门（左侧中央）→ 通往神手谷
     map.tiles[10][0].type = TileType::Door;
@@ -193,9 +191,9 @@ void WorldMapState::BuildQixuanmen() {
     // 提示文字用石头装饰代替
     map.tiles[15][3].type = TileType::Floor;
 
-    // 王护法（南门入口附近）
-    map.tiles[18][12].type = TileType::Floor;
-    map.tiles[18][12].npcId = 14; // 王护法
+    // 王护法（南门入口附近）微调至(18,13)，避开青牛镇回传送落点
+    map.tiles[18][13].type = TileType::Floor;
+    map.tiles[18][13].npcId = 14; // 王护法
 
     // 岳堂主（演武场东侧）
     map.tiles[8][20].type = TileType::Floor;
@@ -315,11 +313,8 @@ void WorldMapState::BuildJiazhou() {
     map.tiles[0][16].warpTargetX = 11;
     map.tiles[0][16].warpTargetY = 16;
 
-    // 南门 -> 通往黄枫谷（从南面沿山路南下）
-    map.tiles[map.height-1][15].type = TileType::Door;
-    map.tiles[map.height-1][15].warpTargetMap = "huangfengu";
-    map.tiles[map.height-1][15].warpTargetX = 1;
-    map.tiles[map.height-1][15].warpTargetY = 15;  // 落点在门前一格
+    // 南门 — 原通往黄枫谷，已删除
+    map.tiles[map.height-1][15].type = TileType::Wall;
 
     // 城内建筑和树木（装饰）
     // 药铺（左上）
@@ -400,23 +395,14 @@ void WorldMapState::BuildHuangfengu() {
         map.tiles[y][map.width-1].type = TileType::Wall;
     }
 
-    // 西门 -> 回七玄门（对应七玄门东门）
-    map.tiles[10][0].type = TileType::Door;
-    map.tiles[10][0].warpTargetMap = "qixuanmen";
-    map.tiles[10][0].warpTargetX = 23;
-    map.tiles[10][0].warpTargetY = 10;
+    // 西门 — 原通往七玄门，已删除
+    map.tiles[10][0].type = TileType::Wall;
 
-    // 从七玄门东门到达的落地格→就是回传门
-    map.tiles[10][1].type = TileType::Door;
-    map.tiles[10][1].warpTargetMap = "qixuanmen";
-    map.tiles[10][1].warpTargetX = 23;
-    map.tiles[10][1].warpTargetY = 10;  // 落点在门前一格
+    // 从七玄门东门到达的落地格 — 原回传门，已删除
+    map.tiles[10][1].type = TileType::Ground;
 
-    // 南门 -> 回嘉州城（从谷口向北上山）
-    map.tiles[16][1].type = TileType::Door;
-    map.tiles[16][1].warpTargetMap = "jiazhou";
-    map.tiles[16][1].warpTargetX = 15;
-    map.tiles[16][1].warpTargetY = 20;  // 落点在门前一格
+    // 南门 — 原通嘉州城，已删除
+    map.tiles[16][1].type = TileType::Ground;
 
     // 山门（大殿）
     for (int y = 6; y <= 12; ++y)
@@ -480,17 +466,11 @@ void WorldMapState::BuildXuese() {
         map.tiles[y][map.width-1].type = TileType::Wall;
     }
 
-    // 东门 -> 回七玄门
-    map.tiles[10][map.width-1].type = TileType::Door;
-    map.tiles[10][map.width-1].warpTargetMap = "qixuanmen";
-    map.tiles[10][map.width-1].warpTargetX = 1;
-    map.tiles[10][map.width-1].warpTargetY = 10;
+    // 东门 — 原回七玄门，已删除
+    map.tiles[10][map.width-1].type = TileType::Wall;
 
-    // 从七玄门西门到达的落地格→就是回传门
-    map.tiles[10][16].type = TileType::Door;
-    map.tiles[10][16].warpTargetMap = "qixuanmen";
-    map.tiles[10][16].warpTargetX = 0;
-    map.tiles[10][16].warpTargetY = 10;
+    // 从七玄门西门到达的落地格 — 原回传门，已删除
+    map.tiles[10][16].type = TileType::Ground;
 
     // 禁地内部道路（曲折小径）
     // 主路：入口 -> 禁地深处
@@ -602,7 +582,7 @@ void WorldMapState::SwitchToMap(const std::string& mapId, int spawnX, int spawnY
         // 王护法 — 南门处守护
         MapNPC npc14; npc14.id = 14; npc14.name = "王护法";
         npc14.nameW = L"王护法"; npc14.color = sf::Color(150, 80, 60);
-        npc14.mapX = 12; npc14.mapY = 18; npc14.faceDir = 0; npc14.isMoving = false;
+        npc14.mapX = 13; npc14.mapY = 18; npc14.faceDir = 0; npc14.isMoving = false;
         m_tileMap.AddNPC(npc14);
 
         // 岳堂主 — 演武场东侧
@@ -629,6 +609,12 @@ void WorldMapState::SwitchToMap(const std::string& mapId, int spawnX, int spawnY
         npc12.nameW = L"秘籍商人"; npc12.color = sf::Color(140, 100, 160);
         npc12.mapX = 15; npc12.mapY = 3; npc12.faceDir = 3; npc12.isMoving = false;
         m_tileMap.AddNPC(npc12);
+
+        // 张均 — 冷面师兄（原著第4章炼骨崖测试中的引路师兄）
+        MapNPC npc16; npc16.id = 16; npc16.name = "张均";
+        npc16.nameW = L"张均"; npc16.color = sf::Color(130, 160, 200);
+        npc16.mapX = 10; npc16.mapY = 13; npc16.faceDir = 1; npc16.isMoving = false;
+        m_tileMap.AddNPC(npc16);
     }
     // 黄枫谷 NPC
     else if (mapId == "huangfengu") {
@@ -685,6 +671,12 @@ void WorldMapState::SwitchToMap(const std::string& mapId, int spawnX, int spawnY
         npc100.nameW = L"守门弟子"; npc100.color = sf::Color(120, 120, 180);
         npc100.mapX = 14; npc100.mapY = 15; npc100.faceDir = 0; npc100.isMoving = false;
         m_tileMap.AddNPC(npc100);
+
+        // 舞岩 — 骄横的候选弟子（原著第3-4章）
+        MapNPC npc17; npc17.id = 17; npc17.name = "舞岩";
+        npc17.nameW = L"舞岩"; npc17.color = sf::Color(200, 150, 60);
+        npc17.mapX = 14; npc17.mapY = 18; npc17.faceDir = 2; npc17.isMoving = true;
+        m_tileMap.AddNPC(npc17);
     }
     // 炼骨崖 NPC
     else if (mapId == "liangu_cliff") {
@@ -774,7 +766,13 @@ void WorldMapState::Enter() {
     static bool s_firstEnter = true;
     if (s_firstEnter) {
         s_firstEnter = false;
-        ShowFloatingText(L"按 Q 查看当前任务 | WASD/方向键移动 | 按 E/NPC附近按F交互");
+        ShowFloatingText(L"按 Q 查看任务 | WASD移动 | Space修炼 | E对话 | F互动");
+    }
+
+    // 如果墨大夫已被击败（任务9已完成/已领奖），从地图上移除他
+    auto* quest9 = QuestSystem::Instance().GetQuest("quest_009_mo_truth");
+    if (quest9 && (quest9->status == QuestStatus::Completed || quest9->status == QuestStatus::Rewarded)) {
+        RemoveMoDafuNPC();
     }
 }
 
@@ -835,6 +833,39 @@ void WorldMapState::Update(float dt) {
     // 浮动提示倒计时
     if (m_floatTimer > 0.f)
         m_floatTimer -= dt;
+
+    // 引路提示动画计时
+    m_guideAnimTimer += dt;
+
+    // 检测Boss击败后的特殊对话+旁白流程（必须先于旁白检测，防止quest完成旁白抢占）
+    auto* bossDefeat = questSys.GetPendingBossDefeat();
+    if (bossDefeat && m_interactState == InteractState::None) {
+        // 先显示Boss战败对话
+        m_dialogueLines.clear();
+        // 将多行文本按\n分割
+        std::wstring remain = bossDefeat->defeatDialogue;
+        while (!remain.empty()) {
+            size_t pos = remain.find(L'\n');
+            if (pos == std::wstring::npos) {
+                m_dialogueLines.push_back(remain);
+                break;
+            }
+            m_dialogueLines.push_back(remain.substr(0, pos));
+            remain = remain.substr(pos + 1);
+        }
+        m_dialogueLineIndex = 0;
+        m_nearbyNPCId = -1;  // 标记为特殊对话（无NPC ID）
+        m_interactState = InteractState::BossDefeatDialogue;
+        // 触发旁白
+        questSys.SetNarration(bossDefeat->narrationKey, QuestSystem::NarrationEvent::Type::Story, 6.f);
+        questSys.ClearPendingBossDefeat();
+    }
+
+    // 检测旁白状态：如果有等待确认的旁白，自动进入旁白显示模式
+    questSys.UpdateNarration(dt);
+    if (m_interactState == InteractState::None && questSys.IsNarrationWaitingConfirm()) {
+        m_interactState = InteractState::ShowNarration;
+    }
 }
 
 // ============================================================
@@ -918,12 +949,6 @@ void WorldMapState::BuildQixuanmenBack() {
     for (int y = 1; y <= 6; ++y)
         map.tiles[y][16].type = TileType::Path;
 
-
-    // 从炼骨崖西门到达的落地格→就是回传门
-    map.tiles[1][16].type = TileType::Door;
-    map.tiles[1][16].warpTargetMap = "liangu_cliff";
-    map.tiles[1][16].warpTargetX = 0;
-    map.tiles[1][16].warpTargetY = 12;
 
     // 北门（通往彩霞山）— 在北侧围墙上开一个 Door
     map.tiles[0][16].type = TileType::Door;
@@ -1650,6 +1675,9 @@ void WorldMapState::Render(sf::RenderWindow& window) {
     // 渲染地图敌人
     RenderMapEnemies(window, -camX, -camY);
 
+    // 渲染引路提示（闪烁黄色感叹号）
+    RenderQuestGuides(window);
+
     // 渲染 HUD（屏幕空间）
     RenderHUD(window);
 
@@ -1665,7 +1693,7 @@ void WorldMapState::Render(sf::RenderWindow& window) {
         m_floatText.setString(m_floatMsg);
         // 居中偏上显示
         sf::FloatRect bounds = m_floatText.getLocalBounds();
-        m_floatText.setPosition(400.f - bounds.width / 2.f, 200.f);
+        m_floatText.setPosition(400.f - bounds.width / 2.f, 80.f);
         m_floatText.setFillColor(sf::Color(
             255, 220, 80,
             static_cast<sf::Uint8>(255 * alpha)
@@ -1675,7 +1703,7 @@ void WorldMapState::Render(sf::RenderWindow& window) {
         glowBg.setFillColor(sf::Color(20, 15, 5, static_cast<sf::Uint8>(180 * alpha)));
         glowBg.setOutlineThickness(1.f);
         glowBg.setOutlineColor(sf::Color(180, 140, 40, static_cast<sf::Uint8>(200 * alpha)));
-        glowBg.setPosition(385.f - bounds.width / 2.f, 196.f);
+        glowBg.setPosition(385.f - bounds.width / 2.f, 76.f);
         window.draw(glowBg);
         window.draw(m_floatText);
     }
@@ -1704,19 +1732,27 @@ void WorldMapState::RenderHUD(sf::RenderWindow& window) {
         window.draw(mapName);
     }
 
-    // 底部操作提示
+    // 底部操作提示（紧贴底部，更醒目）
     sf::Text hint;
     hint.setFont(m_font);
-    hint.setString(L"WASD/方向键移动  F互动  E对话  Q任务  C修炼  I背包  Esc菜单");
-    hint.setCharacterSize(12);
-    hint.setFillColor(sf::Color(120, 120, 120));
-    hint.setPosition(40.f, 580.f);
+    hint.setString(L"移动:WASD/方向  互动:F  对话:E  修炼:Space  任务:Q  背包:I  菜单:Esc");
+    hint.setCharacterSize(13);
+    hint.setFillColor(sf::Color(180, 190, 210));
+    hint.setPosition(30.f, 582.f);
+
+    // 操作提示背景条
+    sf::RectangleShape hintBg(sf::Vector2f(740.f, 18.f));
+    hintBg.setFillColor(sf::Color(15, 20, 35, 210));
+    hintBg.setPosition(30.f, 580.f);
+    hintBg.setOutlineThickness(1.f);
+    hintBg.setOutlineColor(sf::Color(50, 65, 90, 160));
+    window.draw(hintBg);
     window.draw(hint);
 
-    // 右侧玩家状态
+    // 右侧玩家状态面板（扩展版：显示更多属性）
     Player& player = GameSession::Instance().GetPlayer();
-    sf::RectangleShape panel(sf::Vector2f(190.f, 100.f));
-    panel.setFillColor(sf::Color(20, 30, 45, 210));
+    sf::RectangleShape panel(sf::Vector2f(190.f, 190.f));
+    panel.setFillColor(sf::Color(20, 30, 45, 220));
     panel.setPosition(600.f, 8.f);
     panel.setOutlineThickness(1.f);
     panel.setOutlineColor(sf::Color(60, 80, 100));
@@ -1745,7 +1781,7 @@ void WorldMapState::RenderHUD(sf::RenderWindow& window) {
     textY += lineH;
 
     // HP
-    status.setString(L"HP: " + std::to_wstring(player.GetCurrentHp()) +
+    status.setString(L"生命: " + std::to_wstring(player.GetCurrentHp()) +
                        L"/" + std::to_wstring(player.GetMaxHp()));
     status.setFillColor(sf::Color(220, 80, 80));
     status.setPosition(610.f, textY);
@@ -1753,9 +1789,44 @@ void WorldMapState::RenderHUD(sf::RenderWindow& window) {
     textY += lineH;
 
     // MP
-    status.setString(L"MP: " + std::to_wstring(player.GetCurrentMp()) +
+    status.setString(L"法力: " + std::to_wstring(player.GetCurrentMp()) +
                        L"/" + std::to_wstring(player.GetMaxMp()));
     status.setFillColor(sf::Color(80, 120, 220));
+    status.setPosition(610.f, textY);
+    window.draw(status);
+    textY += lineH;
+
+    // 分隔线
+    sf::RectangleShape sepLine2(sf::Vector2f(170.f, 1.f));
+    sepLine2.setFillColor(sf::Color(50, 65, 85));
+    sepLine2.setPosition(610.f, textY);
+    window.draw(sepLine2);
+    textY += 4.f;
+
+    // 攻击力
+    status.setString(L"攻击: " + std::to_wstring(player.GetAttack()));
+    status.setFillColor(sf::Color(240, 160, 80));
+    status.setPosition(610.f, textY);
+    window.draw(status);
+    textY += lineH;
+
+    // 防御力
+    status.setString(L"防御: " + std::to_wstring(player.GetDefense()));
+    status.setFillColor(sf::Color(120, 180, 200));
+    status.setPosition(610.f, textY);
+    window.draw(status);
+    textY += lineH;
+
+    // 速度
+    status.setString(L"速度: " + std::to_wstring(player.GetSpeed()));
+    status.setFillColor(sf::Color(180, 220, 100));
+    status.setPosition(610.f, textY);
+    window.draw(status);
+    textY += lineH;
+
+    // 神识
+    status.setString(L"神识: " + std::to_wstring(player.GetSpirit()));
+    status.setFillColor(sf::Color(180, 140, 220));
     status.setPosition(610.f, textY);
     window.draw(status);
     textY += lineH;
@@ -1779,33 +1850,80 @@ void WorldMapState::RenderHUD(sf::RenderWindow& window) {
         }
     }
     if (!questTitle.empty()) {
+        // 自动换行：按 \n 分割，每行最多22个中文字符
+        std::vector<std::wstring> descLines;
+        std::wstring curLine;
+        int maxCharsPerLine = 22;
+        for (wchar_t ch : questDesc) {
+            if (ch == L'\n') {
+                descLines.push_back(curLine);
+                curLine.clear();
+                continue;
+            }
+            curLine += ch;
+            if ((int)curLine.size() >= maxCharsPerLine) {
+                size_t bp = curLine.find_last_of(L" ，。、）)");
+                if (bp != std::wstring::npos && bp > 2) {
+                    descLines.push_back(curLine.substr(0, bp));
+                    curLine = curLine.substr(bp);
+                } else {
+                    descLines.push_back(curLine);
+                    curLine.clear();
+                }
+            }
+        }
+        if (!curLine.empty()) descLines.push_back(curLine);
+        // 最多显示4行描述
+        if (descLines.size() > 4) {
+            descLines.resize(4);
+            descLines[3] += L"...";
+        }
+
+        // 动态高度：标题(20) + 描述行*17 + 提示(16) + 内边距
+        float descAreaH = (float)descLines.size() * 17.f;
+        float questBoxH = 16.f + 20.f + descAreaH + 16.f + 4.f;
+        float questBoxY = 584.f - questBoxH;
+
+        // 任务追踪背景
+        sf::RectangleShape questBg(sf::Vector2f(280.f, questBoxH));
+        questBg.setFillColor(sf::Color(15, 20, 35, 190));
+        questBg.setPosition(5.f, questBoxY);
+        questBg.setOutlineThickness(1.f);
+        questBg.setOutlineColor(sf::Color(50, 60, 80));
+        window.draw(questBg);
+
+        float curY = questBoxY + 6.f;
+
         // 任务标题
         sf::Text qt;
         qt.setFont(m_font);
         qt.setString(L"⚡ " + questTitle);
-        qt.setCharacterSize(15);
+        qt.setCharacterSize(14);
         qt.setFillColor(sf::Color(255, 215, 80));
-        qt.setPosition(10.f, 540.f);
+        qt.setPosition(12.f, curY);
         window.draw(qt);
+        curY += 20.f;
 
-        // 任务描述（单行截断）
+        // 任务描述（多行）
         sf::Text qd;
         qd.setFont(m_font);
-        // 最多显示两行（约54个中文字符）
-        if (questDesc.size() > 54) questDesc = questDesc.substr(0, 54) + L"...";
-        qd.setString(questDesc);
-        qd.setCharacterSize(12);
-        qd.setFillColor(sf::Color(180, 180, 160));
-        qd.setPosition(10.f, 560.f);
-        window.draw(qd);
+        qd.setCharacterSize(11);
+        qd.setFillColor(sf::Color(160, 160, 145));
+        for (const auto& dl : descLines) {
+            qd.setString(dl);
+            qd.setPosition(12.f, curY);
+            window.draw(qd);
+            curY += 17.f;
+        }
 
         // 任务提示
+        curY += 4.f;
         sf::Text qh;
         qh.setFont(m_font);
         qh.setString(L"按 Q 查看详情");
         qh.setCharacterSize(10);
-        qh.setFillColor(sf::Color(100, 100, 100));
-        qh.setPosition(10.f, 577.f);
+        qh.setFillColor(sf::Color(90, 90, 100));
+        qh.setPosition(12.f, curY);
         window.draw(qh);
     }
 }
@@ -2095,6 +2213,8 @@ static const std::map<int, std::string> s_npcIdToString = {
     { 11, "xinghai_shouhuzhe" }, // 星海守护者
     { 14, "wang_hufa" },       // 王护法
     { 15, "yue_tangzhu" },     // 岳堂主
+    { 16, "zhang_jun" },       // 张均
+    { 17, "wu_yan" },          // 舞岩
     { 100, "shoumen_dizi" },   // 守门弟子
     { 200, "mo_dafu" },        // 墨大夫（炼骨崖/神手谷）
     { 202, "zhang_tie" },      // 张铁（神手谷）
@@ -2268,6 +2388,54 @@ void WorldMapState::ProcessInteractionInput(sf::Keyboard::Key key) {
             break;
         case sf::Keyboard::Escape:
             m_interactState = InteractState::None;
+            break;
+        default:
+            break;
+        }
+        break;
+
+    case InteractState::ShowNarration:
+        // 旁白对话模式：Enter/Space确认关闭
+        switch (key) {
+        case sf::Keyboard::Return:
+        case sf::Keyboard::Space:
+            QuestSystem::Instance().ConfirmNarration();
+            m_interactState = InteractState::None;
+            break;
+        case sf::Keyboard::Escape:
+            QuestSystem::Instance().ClearNarration();
+            m_interactState = InteractState::None;
+            break;
+        default:
+            break;
+        }
+        break;
+
+    case InteractState::BossDefeatDialogue:
+        // Boss战败对话模式：翻页显示对话，结束后自动切换到旁白
+        switch (key) {
+        case sf::Keyboard::Space:
+        case sf::Keyboard::Return:
+        case sf::Keyboard::F:
+            m_dialogueLineIndex += 3; // 每页3行
+            if (m_dialogueLineIndex >= m_dialogueLines.size()) {
+                // 对话结束，墨大夫从地图上消失
+                RemoveMoDafuNPC();
+                // 切换到旁白
+                if (QuestSystem::Instance().IsNarrationWaitingConfirm()) {
+                    m_interactState = InteractState::ShowNarration;
+                } else {
+                    m_interactState = InteractState::None;
+                }
+            }
+            break;
+        case sf::Keyboard::Escape:
+            RemoveMoDafuNPC();
+            if (QuestSystem::Instance().IsNarrationWaitingConfirm()) {
+                m_interactState = InteractState::ShowNarration;
+            } else {
+                m_interactState = InteractState::None;
+            }
             break;
         default:
             break;
@@ -2449,5 +2617,476 @@ void WorldMapState::RenderInteractionUI(sf::RenderWindow& window) {
         contHint.setFillColor(sf::Color(130, 135, 145));
         contHint.setPosition(boxX + 20.f, boxY + boxH - 22.f);
         window.draw(contHint);
+    }
+    else if (m_interactState == InteractState::ShowNarration) {
+        // === 渲染旁白对话框（按回车继续）— 底部 ===
+        auto& qs = QuestSystem::Instance();
+        std::wstring narText = qs.GetCurrentNarrationText();
+        if (!narText.empty()) {
+            float boxW = 740.f;
+            float boxX = (800.f - boxW) / 2.f;
+
+            // 将旁白文本按换行分割，并按最大字符数自动换行
+            int maxCharsPerLine = 38;  // 每行最多38个中文字符
+            std::vector<std::wstring> narLines;
+            std::wstring curLine;
+            for (wchar_t ch : narText) {
+                if (ch == L'\n') {
+                    narLines.push_back(curLine);
+                    curLine.clear();
+                    continue;
+                }
+                curLine += ch;
+                if ((int)curLine.size() >= maxCharsPerLine) {
+                    size_t bp = curLine.find_last_of(L" ，。、）)");
+                    if (bp != std::wstring::npos && bp > 2) {
+                        narLines.push_back(curLine.substr(0, bp));
+                        curLine = curLine.substr(bp);
+                    } else {
+                        narLines.push_back(curLine);
+                        curLine.clear();
+                    }
+                }
+            }
+            if (!curLine.empty()) narLines.push_back(curLine);
+
+            // 计算框高：标题区(30) + 内容行(每行22px) + 提示区(28) + 内边距
+            float contentH = (float)narLines.size() * 22.f;
+            float boxH = 30.f + contentH + 28.f + 10.f;
+            boxH = std::max(90.f, std::min(boxH, 400.f));
+            float boxY = 600.f - boxH - 2.f;  // 贴底部
+
+            // 半透明背景
+            sf::RectangleShape narBox(sf::Vector2f(boxW, boxH));
+            narBox.setFillColor(sf::Color(12, 16, 30, 245));
+            narBox.setPosition(boxX, boxY);
+            narBox.setOutlineThickness(2.f);
+            narBox.setOutlineColor(sf::Color(100, 80, 160));
+            window.draw(narBox);
+
+            // 标题：旁白类型
+            sf::Text narTitle;
+            narTitle.setFont(m_font);
+            auto* narEvent = qs.GetCurrentNarration();
+            if (narEvent && narEvent->type == QuestSystem::NarrationEvent::Type::InnerThought) {
+                narTitle.setString(L"【内心独白】");
+                narTitle.setFillColor(sf::Color(180, 150, 220));
+            } else {
+                narTitle.setString(L"【旁白】");
+                narTitle.setFillColor(sf::Color(200, 180, 120));
+            }
+            narTitle.setCharacterSize(14);
+            narTitle.setPosition(boxX + 15.f, boxY + 6.f);
+            window.draw(narTitle);
+
+            // 分隔线
+            sf::RectangleShape narLine(sf::Vector2f(boxW - 30.f, 1.f));
+            narLine.setFillColor(sf::Color(70, 60, 100));
+            narLine.setPosition(boxX + 15.f, boxY + 28.f);
+            window.draw(narLine);
+
+            // 旁白内容（逐行渲染，确保不超出框边界）
+            sf::Text narContent;
+            narContent.setFont(m_font);
+            narContent.setCharacterSize(15);
+            narContent.setFillColor(sf::Color(230, 220, 190));
+            float textY = boxY + 34.f;
+            float maxTextY = boxY + boxH - 26.f;  // 留出底部提示空间
+            for (const auto& ln : narLines) {
+                if (textY + 18.f > maxTextY) break;  // 防止溢出
+                narContent.setString(ln);
+                narContent.setPosition(boxX + 20.f, textY);
+                window.draw(narContent);
+                textY += 22.f;
+            }
+
+            // 底部提示：按回车继续
+            sf::Text narHint;
+            narHint.setFont(m_font);
+            narHint.setString(L"按 Enter/Space 继续");
+            narHint.setCharacterSize(12);
+            narHint.setFillColor(sf::Color(160, 150, 180));
+            narHint.setPosition(boxX + boxW - 170.f, boxY + boxH - 20.f);
+            window.draw(narHint);
+        }
+    }
+    else if (m_interactState == InteractState::BossDefeatDialogue) {
+        // === 渲染Boss战败对话（特殊样式，红色主题）===
+        float boxW = 720.f;
+        float boxH = 200.f;
+        float boxX = 40.f;
+        float boxY = 600 - boxH - 30.f;
+
+        // 半透明背景（红色调）
+        sf::RectangleShape dialogBox(sf::Vector2f(boxW, boxH));
+        dialogBox.setFillColor(sf::Color(30, 15, 15, 245));
+        dialogBox.setPosition(boxX, boxY);
+        dialogBox.setOutlineThickness(2.f);
+        dialogBox.setOutlineColor(sf::Color(180, 60, 60));
+        window.draw(dialogBox);
+
+        // 标题
+        sf::Text titleTag;
+        titleTag.setFont(m_font);
+        titleTag.setString(L"◆ 战败对话");
+        titleTag.setCharacterSize(16);
+        titleTag.setFillColor(sf::Color(255, 120, 80));
+        titleTag.setPosition(boxX + 15.f, boxY + 8.f);
+        window.draw(titleTag);
+
+        // 分割线
+        sf::RectangleShape dLine(sf::Vector2f(boxW - 30.f, 1.f));
+        dLine.setFillColor(sf::Color(120, 50, 50));
+        dLine.setPosition(boxX + 15.f, boxY + 32.f);
+        window.draw(dLine);
+
+        // 显示当前页的对话文本（每页最多3行）
+        sf::Text dlgText;
+        dlgText.setFont(m_font);
+        dlgText.setCharacterSize(15);
+        dlgText.setFillColor(sf::Color(240, 200, 180));
+
+        size_t maxLinesPerPage = 3;
+        for (size_t i = 0; i < maxLinesPerPage && m_dialogueLineIndex + i < m_dialogueLines.size(); ++i) {
+            const std::wstring& line = m_dialogueLines[m_dialogueLineIndex + i];
+            dlgText.setString(line);
+            dlgText.setPosition(boxX + 20.f, boxY + 40.f + i * 26.f);
+            window.draw(dlgText);
+        }
+
+        // 底部提示
+        sf::Text contHint;
+        contHint.setFont(m_font);
+        bool isLastPage = (m_dialogueLineIndex + maxLinesPerPage >= m_dialogueLines.size());
+        contHint.setString(isLastPage ? L"按 Space/F 继续" : L"按 Space/F 翻页");
+        contHint.setCharacterSize(11);
+        contHint.setFillColor(sf::Color(160, 120, 120));
+        contHint.setPosition(boxX + 20.f, boxY + boxH - 22.f);
+        window.draw(contHint);
+    }
+}
+
+// ============================================================
+//  引路提示系统：闪烁黄色感叹号
+// ============================================================
+
+// NPC字符串ID → 所在地图ID + 整数NPC ID（用于定位地图上的位置）
+struct NPCGuideInfo {
+    std::string mapId;
+    int npcIntId;     // 地图上的整数ID
+};
+// 注意：同一NPC字符串ID可能在不同任务阶段出现在不同地图
+// 这里只做"当前应该在哪"的映射，由任务状态决定
+static std::vector<NPCGuideInfo> GetNPCGuideLocations(const std::string& npcStrId) {
+    auto* quest7 = QuestSystem::Instance().GetQuest("quest_007_mo_scheme");
+    auto* quest9 = QuestSystem::Instance().GetQuest("quest_009_mo_truth");
+
+    std::vector<NPCGuideInfo> result;
+
+    if (npcStrId == "zhang_tie") {
+        // 张铁：任务7激活后在神手谷，否则在七玄门
+        if (quest7 && (quest7->status == QuestStatus::Active ||
+                       quest7->status == QuestStatus::Completed ||
+                       quest7->status == QuestStatus::Rewarded)) {
+            result.push_back({"shenshu_valley", 202});
+        } else {
+            result.push_back({"qixuanmen", 4});
+        }
+    } else if (npcStrId == "mo_dafu") {
+        // 墨大夫：任务9激活后在炼骨崖，任务7激活后在神手谷，否则在神手谷
+        if (quest9 && (quest9->status == QuestStatus::Active ||
+                       quest9->status == QuestStatus::Completed ||
+                       quest9->status == QuestStatus::Rewarded)) {
+            result.push_back({"liangu_cliff", 200});
+        } else {
+            result.push_back({"shenshu_valley", 200});
+        }
+    } else {
+        // 静态映射
+        static const std::map<std::string, NPCGuideInfo> staticMap = {
+            { "san_shu",          {"qingniu_town",   301} },
+            { "wang_hufa",        {"qixuanmen",      14} },
+            { "wuqishang",        {"jiazhou_market", 7} },
+            { "danyaoshi",        {"jiazhou_market", 8} },
+            { "zahuoshang",       {"jiazhou_market", 9} },
+            { "shoumen_dizi",     {"caixia_mountain",100} },
+            { "li_feiyu",         {"qixuanmen",      3} },
+            { "yue_tangzhu",      {"qixuanmen",      15} },
+            { "zhang_jun",        {"qixuanmen",      16} },
+            { "wu_yan",           {"caixia_mountain",17} },
+        };
+        auto it = staticMap.find(npcStrId);
+        if (it != staticMap.end()) result.push_back(it->second);
+    }
+    return result;
+}
+
+// 从当前地图到目标地图需要经过的传送门位置（当前地图上的Door格子）
+struct DoorGuideInfo {
+    std::string fromMap;
+    std::string toMap;       // 传送门直接到达的地图
+    int doorX, doorY;       // 当前地图上Door格子的坐标
+};
+static const std::vector<DoorGuideInfo> s_doorGuideMap = {
+    // 七玄门 → 青牛镇（南门）
+    {"qixuanmen",       "qingniu_town",     12, 19},
+    // 七玄门 → 神手谷（西门）
+    {"qixuanmen",       "shenshu_valley",   0,  10},
+    // 七玄门 → 后山（北门）
+    {"qixuanmen",       "qixuanmen_back",   12, 0},
+    // 青牛镇 → 七玄门（北门）
+    {"qingniu_town",    "qixuanmen",        12, 0},
+    // 青牛镇 → 嘉州城（东门）
+    {"qingniu_town",    "jiazhou",          29, 12},
+    // 嘉州城 → 市场（北门2）
+    {"jiazhou",         "jiazhou_market",   16, 0},
+    // 嘉州城 → 青牛镇（北门1）
+    {"jiazhou",         "qingniu_town",     10, 0},
+    // 市场 → 嘉州城（南门）
+    {"jiazhou_market",  "jiazhou",          11, 17},
+    // 神手谷 → 七玄门（南门）
+    {"shenshu_valley",  "qixuanmen",        8,  19},
+    // 神手谷 → 炼骨崖（北门）
+    {"shenshu_valley",  "liangu_cliff",     8,  0},
+    // 炼骨崖 → 神手谷（南门）
+    {"liangu_cliff",    "shenshu_valley",   7,  20},
+    // 后山 → 七玄门（南门）
+    {"qixuanmen_back",  "qixuanmen",        10, 15},
+    // 后山 → 彩霞山（北门）
+    {"qixuanmen_back",  "caixia_mountain",  16, 0},
+    // 彩霞山 → 后山（南门）
+    {"caixia_mountain", "qixuanmen_back",   14, 23},
+};
+
+// 查找从当前地图到目标地图的最短路径上的第一个门（BFS，返回最优门坐标）
+// 返回 true 并通过 outX/outY 输出门坐标；返回 false 表示不可达
+static bool FindBestDoorTo(const std::string& curMapId, const std::string& targetMapId, int& outX, int& outY) {
+    // BFS：从 curMapId 出发，找到到达 targetMapId 的最短路径
+    // 每一步记录是从哪个门出发的
+    struct BFSNode {
+        std::string mapId;     // 当前所在的地图
+        int doorX, doorY;      // 从起始地图出发的第一个门坐标
+    };
+    std::vector<BFSNode> queue;
+    std::set<std::string> visited;
+
+    // 起点：当前地图的所有门
+    for (const auto& dg : s_doorGuideMap) {
+        if (dg.fromMap == curMapId) {
+            if (dg.toMap == targetMapId) {
+                // 直达！
+                outX = dg.doorX;
+                outY = dg.doorY;
+                return true;
+            }
+            queue.push_back({dg.toMap, dg.doorX, dg.doorY});
+            visited.insert(dg.toMap);
+        }
+    }
+
+    // BFS扩展
+    size_t head = 0;
+    while (head < queue.size()) {
+        BFSNode cur = queue[head++];
+        for (const auto& dg : s_doorGuideMap) {
+            if (dg.fromMap == cur.mapId && visited.find(dg.toMap) == visited.end()) {
+                if (dg.toMap == targetMapId) {
+                    outX = cur.doorX;
+                    outY = cur.doorY;
+                    return true;
+                }
+                visited.insert(dg.toMap);
+                queue.push_back({dg.toMap, cur.doorX, cur.doorY});
+            }
+        }
+    }
+    return false;
+}
+
+// ============================================================
+//  移除墨大夫NPC（击败后从所有地图消失）
+// ============================================================
+void WorldMapState::RemoveMoDafuNPC() {
+    static const int MO_DAFU_NPC_ID = 200;
+    for (auto& [mapId, map] : m_maps) {
+        for (int y = 0; y < map.height; ++y) {
+            for (int x = 0; x < map.width; ++x) {
+                if (map.tiles[y][x].npcId == MO_DAFU_NPC_ID) {
+                    map.tiles[y][x].npcId = -1;
+                }
+            }
+        }
+    }
+    // 同时从当前TileMap的NPC列表中移除（确保渲染和交互不再显示）
+    m_tileMap.RemoveNPC(MO_DAFU_NPC_ID);
+}
+
+// （CanReachMapVia 已被 FindBestDoorTo 替代）
+
+void WorldMapState::RenderQuestGuides(sf::RenderWindow& window) {
+    if (!m_currentMap) return;
+
+    auto& questSys = QuestSystem::Instance();
+    const auto& allQuests = questSys.GetAllQuests();
+    std::string curMapId = m_currentMap->id;
+
+    // 收集当前所有活跃任务的未完成目标
+    std::vector<GuideMarker> markers;
+
+    for (const auto& q : allQuests) {
+        if (q.status != QuestStatus::Active) continue;
+
+        for (const auto& obj : q.objectives) {
+            if (obj.completed) continue;
+
+            // === TalkToNPC 目标：NPC前方放闪烁感叹号 ===
+            if (obj.type == QuestTargetType::TalkToNPC) {
+                auto npcLocations = GetNPCGuideLocations(obj.targetId);
+                for (const auto& info : npcLocations) {
+                    if (info.mapId == curMapId) {
+                        // NPC在当前地图 → 在NPC位置放标记
+                        const MapNPC* npc = nullptr;
+                        for (const auto& n : m_tileMap.GetNPCs()) {
+                            if (n.id == info.npcIntId) { npc = &n; break; }
+                        }
+                        if (npc) {
+                            GuideMarker m;
+                            m.tileX = npc->mapX;
+                            m.tileY = npc->mapY;
+                            m.type = GuideMarker::NPC;
+                            markers.push_back(m);
+                        }
+                    } else {
+                        // NPC不在当前地图 → 在通向该地图的最优传送门前放标记
+                        int dx, dy;
+                        if (FindBestDoorTo(curMapId, info.mapId, dx, dy)) {
+                            GuideMarker m;
+                            m.tileX = dx;
+                            m.tileY = dy;
+                            m.type = GuideMarker::Door;
+                            markers.push_back(m);
+                        }
+                    }
+                }
+            }
+            // === ExploreLocation 目标：目标地图传送门前放标记 ===
+            else if (obj.type == QuestTargetType::ExploreLocation) {
+                if (obj.targetId != curMapId) {
+                    int dx, dy;
+                    if (FindBestDoorTo(curMapId, obj.targetId, dx, dy)) {
+                        GuideMarker m;
+                        m.tileX = dx;
+                        m.tileY = dy;
+                        m.type = GuideMarker::Door;
+                        markers.push_back(m);
+                    }
+                }
+            }
+            // === LearnTechnique 目标：引导到学习该功法的地图 ===
+            else if (obj.type == QuestTargetType::LearnTechnique) {
+                // 功法学习地点映射
+                std::string guideMapId;
+                int teachNpcId = -1;
+                if (obj.targetId == "changchun") {
+                    guideMapId = "shenshu_valley";  // 长春功：去神手谷找墨大夫学习
+                    teachNpcId = 200;  // 墨大夫
+                }
+                if (guideMapId.empty()) continue;
+                if (guideMapId == curMapId && teachNpcId > 0) {
+                    // 已在目标地图 → 在教功法的NPC位置放标记
+                    for (const auto& npc : m_tileMap.GetNPCs()) {
+                        if (npc.id == teachNpcId) {
+                            GuideMarker m;
+                            m.tileX = npc.mapX;
+                            m.tileY = npc.mapY;
+                            m.type = GuideMarker::NPC;
+                            markers.push_back(m);
+                            break;
+                        }
+                    }
+                } else if (guideMapId != curMapId) {
+                    int dx, dy;
+                    if (FindBestDoorTo(curMapId, guideMapId, dx, dy)) {
+                        GuideMarker m;
+                        m.tileX = dx;
+                        m.tileY = dy;
+                        m.type = GuideMarker::Door;
+                        markers.push_back(m);
+                    }
+                }
+            }
+            // === DefeatEnemy 目标：引导到合适的战斗地图 ===
+            else if (obj.type == QuestTargetType::DefeatEnemy) {
+                // 为不同任务指定不同的引导目标地图
+                std::string guideMapId;
+                if (q.id == "quest_003_first_combat") {
+                    guideMapId = "qixuanmen_back";  // 初试锋芒：引导去后山
+                } else if (q.id == "quest_008_wolf_attack") {
+                    guideMapId = "qixuanmen_back";  // 野狼帮入侵：引导去后山打怪
+                }
+                if (!guideMapId.empty() && guideMapId != curMapId) {
+                    int dx, dy;
+                    if (FindBestDoorTo(curMapId, guideMapId, dx, dy)) {
+                        GuideMarker m;
+                        m.tileX = dx;
+                        m.tileY = dy;
+                        m.type = GuideMarker::Door;
+                        markers.push_back(m);
+                    }
+                }
+            }
+        }
+    }
+
+    m_currentGuideMarkers = markers;
+
+    if (markers.empty()) return;
+
+    // 闪烁效果：sin 波动，1Hz 频率
+    float blink = 0.5f + 0.5f * std::sin(m_guideAnimTimer * 6.28f);
+    sf::Uint8 alpha = static_cast<sf::Uint8>(120 + 135 * blink);
+
+    float camX = m_camera.GetX();
+    float camY = m_camera.GetY();
+
+    for (const auto& mk : markers) {
+        // 世界坐标转屏幕坐标
+        float sx = mk.tileX * TileSet::TILE_SIZE - camX;
+        float sy = mk.tileY * TileSet::TILE_SIZE - camY;
+
+        // 屏幕外不渲染
+        if (sx < -40 || sx > 840 || sy < -40 || sy > 640) continue;
+
+        // 感叹号位于格子顶部中央
+        float exX = sx + TileSet::TILE_SIZE / 2.f - 5.f;
+        float exY = sy - 16.f;
+
+        // 限制感叹号位置不超出地图边界（避免在地图边缘跑到黑色区域）
+        if (m_currentMap) {
+            float mapLeft = -camX;
+            float mapTop = -camY;
+            float mapRight = m_currentMap->width * TileSet::TILE_SIZE - camX;
+            float mapBottom = m_currentMap->height * TileSet::TILE_SIZE - camY;
+            exX = std::max(mapLeft + 4.f, std::min(exX, mapRight - 24.f));
+            exY = std::max(mapTop + 2.f, std::min(exY, mapBottom - 24.f));
+        }
+
+        // 黄色感叹号（用文本渲染更清晰）
+        sf::Text exMark;
+        exMark.setFont(m_font);
+        exMark.setString(L"!");
+        exMark.setCharacterSize(22);
+        exMark.setFillColor(sf::Color(255, 230, 50, alpha));
+        exMark.setStyle(sf::Text::Bold);
+        exMark.setPosition(exX, exY);
+
+        // 背景小圆圈
+        sf::CircleShape circle(10.f);
+        circle.setFillColor(sf::Color(60, 50, 0, static_cast<sf::Uint8>(alpha * 0.6f)));
+        circle.setOutlineThickness(2.f);
+        circle.setOutlineColor(sf::Color(255, 200, 30, alpha));
+        circle.setPosition(exX - 3.f, exY + 2.f);
+        window.draw(circle);
+        window.draw(exMark);
     }
 }
