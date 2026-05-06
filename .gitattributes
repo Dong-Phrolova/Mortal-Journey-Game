@@ -1,0 +1,19 @@
+# 统一换行符处理
+* text=auto
+
+# 源码文件：检出用 CRLF（Windows），入库用 LF
+*.cpp   text
+*.h     text
+*.hpp   text
+*.c     text
+*.json  text
+*.md    text
+*.txt   text
+*.cmake text
+CMakeLists.txt text
+
+# 二进制资源不要自动转换
+*.wav   binary
+*.mp3   binary
+*.png   binary
+*.jpg   binary

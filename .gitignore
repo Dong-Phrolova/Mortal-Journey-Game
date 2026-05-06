@@ -1,0 +1,32 @@
+# === 构建输出 ===
+build/
+cmake-build-*/
+out/
+*.exe
+*.dll
+*.lib
+*.pdb
+*.ilk
+*.exp
+*.obj
+
+# === IDE / 编辑器 ===
+.workbuddy/
+.idea/
+.vs/
+.vscode/
+*.user
+*.suo
+*.sdf
+*.opensdf
+*.vcxproj.user
+
+# === 运行时生成的文件 ===
+save*.json
+audio.cfg
+
+# === 系统 ===
+.DS_Store
+Thumbs.db
+Desktop.ini
+nul

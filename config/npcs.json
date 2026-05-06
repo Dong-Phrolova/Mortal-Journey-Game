@@ -1,0 +1,170 @@
+{
+  "npcs": [
+    {
+      "id": "han_li",
+      "name": "韩立",
+      "title": "主角",
+      "location": "七玄门",
+      "description": "资质平庸的少年，因机缘巧合走上修仙之路",
+      "isPlayer": true
+    },
+    {
+      "id": "mo_dafu",
+      "name": "墨大夫",
+      "title": "七玄门供奉",
+      "location": "七玄门彩霞山",
+      "cultivation": "练气期",
+      "description": "表面是七玄门供奉，实则是夺舍重修的修仙者，意图夺取韩立身体",
+      "relation": 0
+    },
+    {
+      "id": "li_feiyu",
+      "name": "厉飞雨",
+      "title": "七玄门弟子",
+      "location": "七玄门",
+      "description": "韩立在七玄门结识的挚友，性格豪爽，武艺高强",
+      "relation": 50
+    },
+    {
+      "id": "san_shu",
+      "name": "韩三叔",
+      "title": "七玄门外门执事",
+      "location": "青牛镇",
+      "description": "韩立的远房三叔，在七玄门外门打理生意，介绍韩立入门",
+      "relation": 30
+    },
+    {
+      "id": "zhang_tie",
+      "name": "张铁",
+      "title": "七玄门弟子",
+      "location": "七玄门",
+      "description": "与韩立同期入门的弟子，后被墨大夫炼制成傀儡",
+      "relation": 10
+    },
+    {
+      "id": "qi_jue",
+      "name": "七绝上人",
+      "title": "七玄门创派祖师",
+      "location": "",
+      "cultivation": "元婴期",
+      "description": "七玄门创始人，曾称霸镜州江湖，后病逝",
+      "relation": 0
+    },
+    {
+      "id": "wan_xiaoshan",
+      "name": "万小山",
+      "title": "散修",
+      "location": "嘉州城",
+      "description": "性格豪爽的散修，与韩立一见如故，时常接济韩立",
+      "relation": 40
+    },
+    {
+      "id": "mo_yuzhu",
+      "name": "墨玉珠",
+      "title": "墨大夫之女",
+      "location": "七玄门",
+      "description": "墨大夫的女儿，对韩立颇有好感，天真烂漫",
+      "relation": 20
+    },
+    {
+      "id": "chen_qiaoqian",
+      "name": "陈巧倩",
+      "title": "黄枫谷弟子",
+      "location": "黄枫谷",
+      "cultivation": "练气期",
+      "description": "黄枫谷内门弟子，天赋出众，对韩立心存好感",
+      "relation": 15
+    },
+    {
+      "id": "yaofang_huoji",
+      "name": "药房伙计",
+      "title": "七玄门药房伙计",
+      "location": "七玄门",
+      "description": "七玄门药房的工作人员，负责售卖基础丹药",
+      "relation": 5
+    },
+    {
+      "id": "shanmin",
+      "name": "山民",
+      "title": "后山山民",
+      "location": "七玄门后山",
+      "description": "在后山采药为生的山民，消息灵通",
+      "relation": 10
+    },
+    {
+      "id": "wuqishang",
+      "name": "武器商",
+      "title": "嘉州城武器商",
+      "location": "嘉州城·市场",
+      "description": "嘉州城市场里的武器商人，货源充足",
+      "relation": 0
+    },
+    {
+      "id": "danyaoshi",
+      "name": "丹药师",
+      "title": "嘉州城丹药师",
+      "location": "嘉州城·市场",
+      "description": "嘉州城市场里的丹药商人，出售各类基础丹药",
+      "relation": 0
+    },
+    {
+      "id": "zahuoshang",
+      "name": "杂货商",
+      "title": "嘉州城杂货商",
+      "location": "嘉州城·市场",
+      "description": "嘉州城市场里的杂货商人，什么都有一点",
+      "relation": 0
+    },
+    {
+      "id": "shuoshuren",
+      "name": "说书人",
+      "title": "嘉州城说书人",
+      "location": "嘉州城·市场",
+      "description": "在市场里说书的老人，知道不少修仙界的轶事",
+      "relation": 5
+    },
+    {
+      "id": "xinghai_shouhuzhe",
+      "name": "星海守护者",
+      "title": "乱星海守护者",
+      "location": "乱星海",
+      "cultivation": "筑基期",
+      "description": "守护乱星海禁地的修士，气息深沉",
+      "relation": 0
+    },
+    {
+      "id": "shoumen_dizi",
+      "name": "守门弟子",
+      "title": "彩霞山守门弟子",
+      "location": "彩霞山",
+      "description": "驻守彩霞山山门的七玄门弟子，负责盘查入山人员",
+      "relation": 5
+    }
+  ],
+  "locations": [
+    {
+      "id": "qixuanmen",
+      "name": "七玄门",
+      "type": "门派",
+      "description": "由七绝上人创立的江湖门派，位于彩霞山"
+    },
+    {
+      "id": "caixia_mountain",
+      "name": "彩霞山",
+      "type": "山脉",
+      "description": "七玄门驻地，山势险要，易守难攻"
+    },
+    {
+      "id": "luori_peak",
+      "name": "落日峰",
+      "type": "山峰",
+      "description": "七玄门内峰，韩立在此击退野狼帮"
+    },
+    {
+      "id": "qingniu_town",
+      "name": "青牛镇",
+      "type": "城镇",
+      "description": "镜州下辖城镇，七玄门势力范围"
+    }
+  ]
+}

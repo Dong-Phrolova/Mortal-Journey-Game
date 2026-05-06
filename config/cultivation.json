@@ -1,0 +1,127 @@
+{
+  "realms": [
+    {
+      "id": "qi_1", "name": "练气一层", "tier": 0, "subStage": 0,
+      "hpBonus": 0, "mpBonus": 0, "atkBonus": 0, "defBonus": 0,
+      "speedBonus": 0, "spiritBonus": 0, "lifespan": 0,
+      "description": "初入修仙，灵根未定"
+    },
+    {
+      "id": "qi_2", "name": "练气二层", "tier": 0, "subStage": 1,
+      "hpBonus": 5, "mpBonus": 3, "atkBonus": 2, "defBonus": 1,
+      "speedBonus": 1, "spiritBonus": 2, "lifespan": 0,
+      "description": "灵气初聚，气海渐开"
+    },
+    {
+      "id": "qi_3", "name": "练气三层", "tier": 0, "subStage": 2,
+      "hpBonus": 10, "mpBonus": 6, "atkBonus": 4, "defBonus": 2,
+      "speedBonus": 2, "spiritBonus": 4, "lifespan": 0,
+      "description": "灵气充盈，可修简单法术"
+    },
+    {
+      "id": "qi_4", "name": "练气四层", "tier": 0, "subStage": 3,
+      "hpBonus": 15, "mpBonus": 9, "atkBonus": 6, "defBonus": 3,
+      "speedBonus": 3, "spiritBonus": 6, "lifespan": 0,
+      "description": "实力大进，可御使低阶法器"
+    },
+    {
+      "id": "qi_5", "name": "练气五层", "tier": 0, "subStage": 4,
+      "hpBonus": 20, "mpBonus": 12, "atkBonus": 8, "defBonus": 4,
+      "speedBonus": 4, "spiritBonus": 8, "lifespan": 0
+    },
+    {
+      "id": "qi_6", "name": "练气六层", "tier": 0, "subStage": 5,
+      "hpBonus": 26, "mpBonus": 16, "atkBonus": 10, "defBonus": 5,
+      "speedBonus": 5, "spiritBonus": 10, "lifespan": 0
+    },
+    {
+      "id": "qi_7", "name": "练气七层", "tier": 0, "subStage": 6,
+      "hpBonus": 32, "mpBonus": 20, "atkBonus": 13, "defBonus": 6,
+      "speedBonus": 6, "spiritBonus": 13, "lifespan": 0
+    },
+    {
+      "id": "qi_8", "name": "练气八层", "tier": 0, "subStage": 7,
+      "hpBonus": 38, "mpBonus": 24, "atkBonus": 16, "defBonus": 8,
+      "speedBonus": 7, "spiritBonus": 16, "lifespan": 0
+    },
+    {
+      "id": "qi_9", "name": "练气九层", "tier": 0, "subStage": 8,
+      "hpBonus": 45, "mpBonus": 28, "atkBonus": 19, "defBonus": 10,
+      "speedBonus": 8, "spiritBonus": 19, "lifespan": 0
+    },
+    {
+      "id": "qi_10", "name": "练气十层", "tier": 0, "subStage": 9,
+      "hpBonus": 52, "mpBonus": 33, "atkBonus": 22, "defBonus": 12,
+      "speedBonus": 10, "spiritBonus": 22, "lifespan": 0,
+      "description": "练气顶峰，已可尝试筑基"
+    },
+    {
+      "id": "qi_11", "name": "练气十一层", "tier": 0, "subStage": 10,
+      "hpBonus": 60, "mpBonus": 38, "atkBonus": 26, "defBonus": 14,
+      "speedBonus": 12, "spiritBonus": 26, "lifespan": 0
+    },
+    {
+      "id": "qi_12", "name": "练气十二层", "tier": 0, "subStage": 11,
+      "hpBonus": 68, "mpBonus": 43, "atkBonus": 30, "defBonus": 16,
+      "speedBonus": 14, "spiritBonus": 30, "lifespan": 0
+    },
+    {
+      "id": "qi_13", "name": "练气十三层", "tier": 0, "subStage": 12,
+      "hpBonus": 77, "mpBonus": 49, "atkBonus": 35, "defBonus": 18,
+      "speedBonus": 16, "spiritBonus": 35, "lifespan": 0,
+      "description": "圆满之境，筑基瓶颈已近"
+    },
+    {
+      "id": "zhuji_early", "name": "筑基初期", "tier": 1, "subStage": 0,
+      "hpBonus": 120, "mpBonus": 80, "atkBonus": 50, "defBonus": 30,
+      "speedBonus": 20, "spiritBonus": 50, "lifespan": 200,
+      "description": "筑基大成，寿元两百，可御剑飞行"
+    },
+    {
+      "id": "zhuji_mid", "name": "筑基中期", "tier": 1, "subStage": 1,
+      "hpBonus": 160, "mpBonus": 110, "atkBonus": 65, "defBonus": 40,
+      "speedBonus": 25, "spiritBonus": 65, "lifespan": 200
+    },
+    {
+      "id": "zhuji_late", "name": "筑基后期", "tier": 1, "subStage": 2,
+      "hpBonus": 200, "mpBonus": 140, "atkBonus": 80, "defBonus": 50,
+      "speedBonus": 30, "spiritBonus": 80, "lifespan": 200
+    },
+    {
+      "id": "zhuji_peak", "name": "筑基大圆满", "tier": 1, "subStage": 3,
+      "hpBonus": 250, "mpBonus": 180, "atkBonus": 100, "defBonus": 60,
+      "speedBonus": 35, "spiritBonus": 100, "lifespan": 200,
+      "description": "筑基圆满，可尝试凝结金丹"
+    },
+    {
+      "id": "jindan_early", "name": "结丹初期", "tier": 2, "subStage": 0,
+      "hpBonus": 400, "mpBonus": 300, "atkBonus": 150, "defBonus": 80,
+      "speedBonus": 50, "spiritBonus": 150, "lifespan": 500,
+      "description": "结成金丹，寿元五百，可炼本命法宝"
+    },
+    {
+      "id": "jindan_mid", "name": "结丹中期", "tier": 2, "subStage": 1,
+      "hpBonus": 500, "mpBonus": 380, "atkBonus": 190, "defBonus": 100,
+      "speedBonus": 60, "spiritBonus": 190, "lifespan": 500
+    },
+    {
+      "id": "jindan_late", "name": "结丹后期", "tier": 2, "subStage": 2,
+      "hpBonus": 600, "mpBonus": 460, "atkBonus": 230, "defBonus": 120,
+      "speedBonus": 70, "spiritBonus": 230, "lifespan": 500
+    },
+    {
+      "id": "jindan_peak", "name": "结丹大圆满", "tier": 2, "subStage": 3,
+      "hpBonus": 700, "mpBonus": 550, "atkBonus": 280, "defBonus": 140,
+      "speedBonus": 80, "spiritBonus": 280, "lifespan": 500,
+      "description": "金丹圆满，假婴之境"
+    },
+    {
+      "id": "yuanying_early", "name": "元婴初期", "tier": 3, "subStage": 0,
+      "hpBonus": 1000, "mpBonus": 800, "atkBonus": 400, "defBonus": 200,
+      "speedBonus": 100, "spiritBonus": 400, "lifespan": 1000,
+      "description": "丹破婴生，大道初成，元婴不灭可夺舍"
+    }
+  ],
+  "elements": ["金", "木", "水", "火", "土", "风", "雷", "冰"],
+  "spiritRootNames": ["无灵根", "五行杂灵根", "四灵根", "三灵根", "双灵根", "单灵根", "天灵根", "变异灵根"]
+}
