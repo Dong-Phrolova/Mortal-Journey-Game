@@ -226,60 +226,45 @@ void TileSet::RenderWater(sf::RenderTexture& rt, int variant) {
 //  树 Tree — 深绿树冠+棕色树干（正常朝上）
 // ============================================================
 void TileSet::RenderTree(sf::RenderTexture& rt, int variant) {
-    // 先画草地底层
+    // 绿色底色
     sf::RectangleShape base(sf::Vector2f(TILE_SIZE, TILE_SIZE));
-    base.setFillColor(sf::Color(76, 153, 60));
+    sf::Color groundColors[] = {sf::Color(76,153,60), sf::Color(80,148,55), sf::Color(70,145,65), sf::Color(85,155,50)};
+    base.setFillColor(groundColors[variant % 4]);
     rt.draw(base);
 
-    // 树干（偏下居中）
-    Px(rt, 13, 20, sf::Color(120, 80, 40), 6, 9);   // 主干
-    Px(rt, 12, 25, sf::Color(100, 65, 30), 8, 4);   // 底座加宽
-
     // 树冠颜色
-    sf::Color leafDark(30, 110, 35);    // 深绿
-    sf::Color leafMid(45, 140, 45);     // 中绿
-    sf::Color leafLight(65, 170, 60);   // 亮绿
+    sf::Color leafDark, leafMid, leafLight;
+    int season = variant % 4;
+    if (season == 0) { leafDark = sf::Color(30,110,35); leafMid = sf::Color(45,145,50); leafLight = sf::Color(70,180,65); }
+    else if (season == 1) { leafDark = sf::Color(25,100,30); leafMid = sf::Color(40,130,40); leafLight = sf::Color(60,160,55); }
+    else if (season == 2) { leafDark = sf::Color(140,90,25); leafMid = sf::Color(175,120,35); leafLight = sf::Color(210,155,45); }
+    else { leafDark = sf::Color(90,70,40); leafMid = sf::Color(110,85,50); leafLight = sf::Color(130,100,55); }
 
-    // === 上层小冠（树顶）===
-    for (int dy = 1; dy <= 10; dy++)
-        for (int dx = 8; dx <= 23; dx++) {
-            float cx = 16.f, cy = 5.f;
-            float dist = sqrtf((dx - cx)*(dx - cx) + (dy - cy)*(dy - cy));
-            if (dist <= 6.f && dist > 4.f)
-                Px(rt, dx, dy, leafDark, 1, 1);
-            else if (dist <= 4.f && dist > 2.f)
-               Px(rt, dx, dy, leafMid, 1, 1);
-            else if (dist <= 2.f)
-                Px(rt, dx, dy, leafLight, 1, 1);
-        }
+    const sf::Color trunk(110, 75, 40);
+    const sf::Color trunkDk(85, 55, 25);
 
-    // === 中层主冠（最大最圆）===
-    for (int dy = 6; dy <= 18; dy++)
+    // === 树干（格子上半部）===
+    Px(rt, 14, 2, trunk, 4, 2);   // 树顶
+    Px(rt, 13, 4, trunk, 6, 8);   // 主干 y=4..12
+    Px(rt, 14, 12, trunkDk, 4, 3); // 基部
+    // 树皮纹理
+    Px(rt, 15, 5, trunkDk, 1, 2);
+    Px(rt, 15, 9, trunkDk, 1, 2);
+    Px(rt, 14, 7, trunkDk, 1, 2);
+
+    // === 树冠（圆形大冠，格子下半部）===
+    for (int dy = 12; dy <= 31; dy++)
         for (int dx = 3; dx <= 28; dx++) {
-            float cx = 16.f, cy = 11.f;
+            float cx = 16.f, cy = 24.f;
             float dist = sqrtf((dx - cx)*(dx - cx) + (dy - cy)*(dy - cy));
-            if (dist <= 10.f && dist > 7.f)
-                Px(rt, dx, dy, leafDark, 1, 1);
-            else if (dist <= 7.f && dist > 4.f)
-                Px(rt, dx, dy, leafMid, 1, 1);
-            else if (dist <= 4.f)
-                Px(rt, dx, dy, leafLight, 1, 1);
+            if (dist <= 10.f && dist > 7.f) Px(rt, dx, dy, leafDark, 1, 1);
+            else if (dist <= 7.f && dist > 4.f) Px(rt, dx, dy, leafMid, 1, 1);
+            else if (dist <= 4.f) Px(rt, dx, dy, leafLight, 1, 1);
         }
 
-    // === 下层冠（连接树干）===
-    for (int dy = 14; dy <= 21; dy++)
-        for (int dx = 7; dx <= 24; dx++) {
-            float cx = 16.f, cy = 18.f;
-            float dist = sqrtf((dx - cx)*(dx - cx) + (dy - cy)*(dy - cy));
-            if (dist <= 6.f && dist > 4.f)
-                Px(rt, dx, dy, leafDark, 1, 1);
-            else if (dist <= 4.f)
-                Px(rt, dx, dy, leafMid, 1, 1);
-        }
-
-    // 树顶高光
-    Px(rt, 15, 0, leafLight, 3, 2);
-    Px(rt, 14, 0, leafMid, 5, 1);
+    // 树冠底部高光
+    Px(rt, 15, 30, leafLight, 3, 2);
+    Px(rt, 14, 30, leafMid, 5, 1);
 }
 
 // ============================================================

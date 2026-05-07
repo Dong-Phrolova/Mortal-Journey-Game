@@ -29,6 +29,7 @@ public:
     const std::wstring& GetName() const { return m_name; }
     int  GetHp() const { return m_hp; }
     int  GetMaxHp() const { return m_maxHp; }
+    EnemyType GetType() const { return m_type; }
 
 private:
     std::wstring m_name;

@@ -833,35 +833,65 @@ void CombatState::Render(sf::RenderWindow& window) {
 // ============================================================
 void CombatState::RenderBackground(sf::RenderWindow& w) {
     // 天空渐变（上深蓝 → 中紫 → 下暗棕地面）
-    // 天空区域
     sf::RectangleShape sky(sf::Vector2f(800.f, 320.f));
-    sky.setFillColor(sf::Color(18, 10, 35));
+    sky.setFillColor(sf::Color(14, 8, 32));
     sky.setPosition(0, 0);
     w.draw(sky);
 
-    // 地面区域
+    // 远山轮廓
+    sf::ConvexShape mountain;
+    mountain.setPointCount(6);
+    mountain.setPoint(0, sf::Vector2f(0.f, 240.f));
+    mountain.setPoint(1, sf::Vector2f(80.f, 160.f));
+    mountain.setPoint(2, sf::Vector2f(200.f, 200.f));
+    mountain.setPoint(3, sf::Vector2f(320.f, 140.f));
+    mountain.setPoint(4, sf::Vector2f(500.f, 210.f));
+    mountain.setPoint(5, sf::Vector2f(800.f, 180.f));
+    mountain.setFillColor(sf::Color(25, 18, 50));
+    w.draw(mountain);
+
+    // 地面区域（近景）
     sf::RectangleShape ground(sf::Vector2f(800.f, 130.f));
-    ground.setFillColor(sf::Color(35, 25, 15));
+    ground.setFillColor(sf::Color(40, 32, 20));
     ground.setPosition(0, 310.f);
     w.draw(ground);
 
     // 地面线
     sf::RectangleShape groundLine(sf::Vector2f(800.f, 3.f));
-    groundLine.setFillColor(sf::Color(80, 55, 30));
+    groundLine.setFillColor(sf::Color(100, 72, 40));
     groundLine.setPosition(0, 310.f);
     w.draw(groundLine);
 
-    // 月亮装饰
-    sf::CircleShape moon(30.f);
-    moon.setFillColor(sf::Color(255, 250, 220));
-    moon.setPosition(680.f, 20.f);
-    w.draw(moon);
+    // 地面纹理点
+    srand(137);
+    for (int i = 0; i < 20; ++i) {
+        int gx = rand() % 800;
+        int gy = 315 + rand() % 120;
+        sf::RectangleShape dot(sf::Vector2f(2.f, 2.f));
+        dot.setFillColor(sf::Color(55, 45, 30, 120));
+        dot.setPosition((float)gx, (float)gy);
+        w.draw(dot);
+    }
 
-    // 几颗星星
-    for (int i = 0; i < 8; ++i) {
-        sf::CircleShape star(1.5f + (i % 2));
-        star.setFillColor(sf::Color(220, 220, 255, 180));
-        star.setPosition(50.f + i * 90.f + (i % 3) * 20.f, 30.f + (i % 4) * 15.f);
+    // 月亮装饰
+    sf::CircleShape moon(28.f);
+    moon.setFillColor(sf::Color(245, 240, 210));
+    moon.setPosition(685.f, 25.f);
+    w.draw(moon);
+    // 月晕
+    sf::CircleShape moonGlow(40.f);
+    moonGlow.setFillColor(sf::Color(245, 240, 210, 30));
+    moonGlow.setPosition(673.f, 13.f);
+    w.draw(moonGlow);
+
+    // 几颗星星（闪烁，用 animTimer 控制亮度）
+    for (int i = 0; i < 12; ++i) {
+        float twinkle = 0.5f + 0.5f * std::sin(m_animTimer * 1.5f + (float)i * 2.1f);
+        sf::CircleShape star(1.0f + (i % 3) * 0.5f);
+        sf::Uint8 alpha = (sf::Uint8)(100 + (sf::Uint8)(155 * twinkle));
+        star.setFillColor(sf::Color(220, 220, 255, alpha));
+        star.setPosition(30.f + i * 65.f + (i % 5) * 10.f,
+                         15.f + (i % 6) * 18.f + (i % 3) * 8.f);
         w.draw(star);
     }
 
@@ -883,42 +913,82 @@ void CombatState::RenderEnemySprite(sf::RenderWindow& w) {
     if (m_hitShakeTimer > 0 && m_enemyHit)
         shake = std::sin(m_hitShakeTimer * 40.f) * 6.f;
 
-    float ex = 480.f + shake;
-    float ey = 100.f;
+    float idleBob = std::sin(m_animTimer * 2.5f + 1.0f) * 2.f;
 
-    // 敌人身体（像素风，用小方块构成人形）
+    float ex = 480.f + shake;
+    float ey = 100.f + idleBob;
+
     sf::Color bodyC(140,60,60), bodyDk(100,40,40), bodyLt(180,80,80);
     sf::Color skin(255,200,160), hair(30,20,10), armor(90,80,70), eyeC(255,50,50);
-    int t = 0;
-    if (m_enemy) { auto& n = m_enemy->GetName(); if (!n.empty()) t = ((int)n[0])%4; }
-    switch (t) {
-        case 0: bodyC={160,55,55};bodyDk={110,35,35};bodyLt={200,70,70};armor={100,45,45};eyeC={255,30,30};break;
-        case 1: bodyC={55,90,160};bodyDk={35,60,110};bodyLt={80,120,200};armor={60,70,90};eyeC={200,200,100};break;
-        case 2: bodyC={80,150,55};bodyDk={50,100,35};bodyLt={120,200,80};armor={60,90,50};eyeC={255,200,50};break;
-        case 3: bodyC={110,50,140};bodyDk={75,30,95};bodyLt={150,70,180};armor={80,40,100};eyeC={255,100,200};break;
+    sf::Color auraC(0,0,0,0);
+    bool isBoss = m_isBoss;
+
+    EnemyType eType = EnemyType::Mortal;
+    if (m_enemy) eType = m_enemy->GetType();
+    switch (eType) {
+        case EnemyType::Mortal:
+            bodyC={160,55,55};bodyDk={110,35,35};bodyLt={200,70,70};armor={100,45,45};eyeC={255,30,30};
+            break;
+        case EnemyType::Qi:
+            bodyC={55,90,160};bodyDk={35,60,110};bodyLt={80,120,200};armor={60,70,90};eyeC={200,200,100};
+            auraC = sf::Color(55, 90, 160, 20);
+            break;
+        case EnemyType::YaoBeast:
+            bodyC={80,150,55};bodyDk={50,100,35};bodyLt={120,200,80};armor={60,90,50};eyeC={255,200,50};
+            auraC = sf::Color(80, 150, 55, 20);
+            break;
+        case EnemyType::MoXiu:
+            bodyC={110,50,140};bodyDk={75,30,95};bodyLt={150,70,180};armor={80,40,100};eyeC={255,100,200};
+            auraC = sf::Color(110, 50, 140, 25);
+            break;
+        case EnemyType::ZhuJi:
+            bodyC={40,80,180};bodyDk={25,55,130};bodyLt={60,110,220};armor={50,60,100};eyeC={180,220,255};
+            auraC = sf::Color(40, 80, 180, 25);
+            break;
     }
     auto P = [&](float x,float y,float ww,float h,sf::Color c){
         sf::RectangleShape r(sf::Vector2f(ww,h));r.setFillColor(c);r.setPosition(ex+x,ey+y);w.draw(r);
     };
 
-    // 像素风敌人（约64x96像素人形）
-    P(12,78,8,16,bodyDk);P(44,78,8,16,bodyDk);          // 腿
-    P(10,90,12,5,sf::Color(40,35,30));P(42,90,12,5,sf::Color(40,35,30)); // 鞋
-    P(10,44,44,38,bodyC);P(10,44,8,38,bodyDk);P(46,44,8,38,bodyDk); // 躯干
-    P(14,62,36,5,armor);P(16,44,32,4,bodyLt);           // 腰带+衣领
-    P(4,50,8,28,bodyC);P(52,50,8,28,bodyC);             // 双臂
-    P(4,64,8,5,skin);P(52,64,8,5,skin);                 // 手
-    P(14,16,36,30,skin);                                 // 头脸
-    P(14,10,36,12,hair);P(10,16,8,12,hair);P(46,16,8,12,hair); // 头发
-    P(14,8,10,6,hair);P(40,8,10,6,hair);                // 发顶
-    P(22,28,8,6,eyeC);P(34,28,8,6,eyeC);                // 眼睛
-    P(24,30,4,4,sf::Color(255,255,255));P(36,30,4,4,sf::Color(255,255,255)); // 瞳白
+    if (isBoss) {
+        sf::CircleShape bossGlow(55.f);
+        bossGlow.setFillColor(sf::Color(255, 200, 50, 15));
+        bossGlow.setPosition(ex - 10.f, ey - 15.f);
+        w.draw(bossGlow);
+    } else if (auraC.a > 0) {
+        sf::CircleShape aura(48.f);
+        aura.setFillColor(auraC);
+        aura.setPosition(ex - 8.f, ey - 10.f);
+        w.draw(aura);
+    }
+
+    P(8,96,48,5,sf::Color(0,0,0,35));
+
+    P(12,78,8,16,bodyDk);P(44,78,8,16,bodyDk);
+    P(10,90,12,5,sf::Color(40,35,30));P(42,90,12,5,sf::Color(40,35,30));
+    P(10,44,44,38,bodyC);P(10,44,8,38,bodyDk);P(46,44,8,38,bodyDk);
+    P(26,48,2,30,sf::Color((sf::Uint8)(bodyC.r*0.8f),(sf::Uint8)(bodyC.g*0.8f),(sf::Uint8)(bodyC.b*0.8f),100));
+    P(36,48,2,30,sf::Color((sf::Uint8)(bodyC.r*0.8f),(sf::Uint8)(bodyC.g*0.8f),(sf::Uint8)(bodyC.b*0.8f),100));
+    P(14,62,36,5,armor);P(16,44,32,4,bodyLt);
+    P(4,50,8,28,bodyC);P(52,50,8,28,bodyC);
+    P(4,64,8,5,skin);P(52,64,8,5,skin);
+    P(14,16,36,30,skin);
+    P(14,10,36,12,hair);P(10,16,8,12,hair);P(46,16,8,12,hair);
+    P(14,8,10,6,hair);P(40,8,10,6,hair);
+    P(22,28,8,6,eyeC);P(34,28,8,6,eyeC);
+    P(24,30,4,4,sf::Color(255,255,255));P(36,30,4,4,sf::Color(255,255,255));
     if(m_hitShakeTimer>0&&m_enemyHit) P(26,40,12,4,sf::Color(255,50,50));
-    else P(26,40,12,3,sf::Color(100,80,60));             // 嘴
+    else P(26,40,12,3,sf::Color(100,80,60));
 
-    // 受击闪白
+    if (isBoss) {
+        P(4,44,8,6,sf::Color(180,150,80));
+        P(52,44,8,6,sf::Color(180,150,80));
+    }
+    if (eType == EnemyType::YaoBeast) {
+        P(14,8,8,8,bodyC);
+        P(42,8,8,8,bodyC);
+    }
 
-    // 受击闪白
     if (m_hitShakeTimer > 0 && m_enemyHit) {
         sf::RectangleShape flash(sf::Vector2f(110.f, 130.f));
         float alpha = (m_hitShakeTimer / 0.4f) * 200.f;
@@ -928,7 +998,7 @@ void CombatState::RenderEnemySprite(sf::RenderWindow& w) {
         if (m_hitShakeTimer <= 0) m_enemyHit = false;
     }
 
-    // 敌人名称（头上方）
+    // 敌人名称（头上方）    // 敌人名称（头上方）
     if (m_enemy) {
         sf::Text nameT;
         nameT.setFont(m_font);
@@ -949,27 +1019,58 @@ void CombatState::RenderPlayerSprite(sf::RenderWindow& w) {
     if (m_hitShakeTimer > 0 && m_playerHit)
         shake = std::sin(m_hitShakeTimer * 35.f) * 5.f;
 
-    float px = 120.f + shake;
-    float py = 160.f;
+    // 空闲呼吸动画（3px 浮动）
+    float idleBob = std::sin(m_animTimer * 3.0f) * 2.f;
 
-    // 韩立像素风（参考PlayerSprite的配色）
+    float px = 120.f + shake;
+    float py = 160.f + idleBob;
+
+    // 韩立像素风 — 优化版
     auto P = [&](float x,float y,float ww,float h,sf::Color c){
         sf::RectangleShape r(sf::Vector2f(ww,h));r.setFillColor(c);r.setPosition(px+x,py+y);w.draw(r);
     };
     const sf::Color robe(38,128,95), robeDk(26,90,65), robeLt(52,160,120);
     const sf::Color skin(255,215,175), skinD(220,185,150);
     const sf::Color hair(28,22,18), belt(160,115,50), shoes(50,45,38);
+    const sf::Color sword(200,185,160), swordDk(140,125,100), swordGrip(120,80,40);
+
+    // 境界光环（根据大境界显示颜色）
+    sf::Color auraColor(38, 128, 95, 30); // 默认练气青
+    if (m_player) {
+        MajorRealm major = m_player->GetMajorRealm();
+        if (major == MajorRealm::ZhuJi) auraColor = sf::Color(66, 165, 245, 30);
+        else if (major == MajorRealm::JieDan) auraColor = sf::Color(255, 213, 79, 30);
+    }
+    sf::CircleShape aura(40.f);
+    aura.setFillColor(auraColor);
+    aura.setPosition(px - 8.f, py - 10.f);
+    w.draw(aura);
 
     // 阴影
-    P(10,98,32,5,sf::Color(0,0,0,40));
+    P(6,100,40,5,sf::Color(0,0,0,35));
+
+    // 武器（剑，从手中伸出）
+    if (m_phase != CombatPhase::ShowMessage && m_phase != CombatPhase::CombatEnd) {
+        // 剑身
+        P(44,28,4,36,sword);
+        P(45,28,2,36,swordDk);
+        // 剑格
+        P(42,26,8,3,swordGrip);
+        // 剑柄
+        P(43,22,6,6,swordGrip);
+        P(44,18,4,5,sf::Color(60,50,40));
+    }
 
     // 腿+鞋
     P(12,84,8,16,robeDk);P(32,84,8,16,robeDk);
     P(10,96,12,5,shoes);P(30,96,12,5,shoes);
 
-    // 身体
+    // 身体（带衣纹）
     P(10,44,32,44,robe);
     P(10,44,6,44,robeDk);P(36,44,6,44,robeDk);
+    // 衣服纹理线
+    P(22,48,2,36,sf::Color(34,115,85,100));
+    P(28,48,2,36,sf::Color(34,115,85,100));
     P(14,68,24,3,belt);
     P(16,44,20,4,robeLt); // 衣领
 
@@ -993,7 +1094,6 @@ void CombatState::RenderPlayerSprite(sf::RenderWindow& w) {
     P(22,37,8,2,sf::Color(180,140,110));
 
     // 受击闪红
-    if (m_hitShakeTimer > 0 && m_playerHit)
     if (m_hitShakeTimer > 0 && m_playerHit) {
         sf::RectangleShape flash(sf::Vector2f(60.f, 80.f));
         float alpha = (m_hitShakeTimer / 0.4f) * 180.f;

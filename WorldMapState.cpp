@@ -1606,6 +1606,15 @@ void WorldMapState::BuildQingniuTown() {
         if (map.tiles[12][x].type != TileType::Door)
             map.tiles[12][x].type = TileType::Path;
 
+    // 街边树木装饰
+    map.tiles[11][3].type = TileType::Tree;  map.tiles[11][10].type = TileType::Tree;
+    map.tiles[11][23].type = TileType::Tree;
+    map.tiles[2][3].type = TileType::Tree;   map.tiles[2][10].type = TileType::Tree;
+    map.tiles[2][23].type = TileType::Tree;
+    map.tiles[16][1].type = TileType::Tree;  map.tiles[18][1].type = TileType::Tree;
+    map.tiles[20][1].type = TileType::Tree;
+    map.tiles[10][10].type = TileType::Tree; map.tiles[10][19].type = TileType::Tree;
+
     // 小河（列20, 行3~11）
     for (int y = 3; y <= 11; ++y) map.tiles[y][20].type = TileType::Water;
 
@@ -1616,19 +1625,19 @@ void WorldMapState::BuildQingniuTown() {
     }
     for (int y = 9; y <= 12; ++y) map.tiles[y][20].type = TileType::Path;
 
+    // 河边垂柳
+    map.tiles[4][19].type = TileType::Tree; map.tiles[4][21].type = TileType::Tree;
+    map.tiles[6][19].type = TileType::Tree; map.tiles[6][21].type = TileType::Tree;
+    map.tiles[9][19].type = TileType::Tree; map.tiles[9][21].type = TileType::Tree;
+
     // === 春香酒楼 (行3~9, 列11~18) ===
     for (int x = 11; x <= 18; ++x) { map.tiles[3][x].type = TileType::Wall; map.tiles[9][x].type = TileType::Wall; }
     for (int y = 3; y <= 9; ++y) { map.tiles[y][11].type = TileType::Wall; map.tiles[y][18].type = TileType::Wall; }
     for (int y = 4; y <= 8; ++y) for (int x = 12; x <= 17; ++x) map.tiles[y][x].type = TileType::Floor;
     map.tiles[9][14].type = TileType::Door;
     map.tiles[9][15].type = TileType::Door;
-    // 柜台（木桌）
-    map.tiles[5][12].type = TileType::Tree;
-    map.tiles[5][13].type = TileType::Tree;
-    map.tiles[5][14].type = TileType::Tree;
-    map.tiles[5][15].type = TileType::Tree;
-    map.tiles[5][16].type = TileType::Tree;
-    map.tiles[5][17].type = TileType::Tree;
+    // 柜台（木桌 — 用Floor突出）
+    for (int x = 12; x <= 17; ++x) map.tiles[5][x].type = TileType::Floor;
     // 酒楼入口路
     for (int y = 10; y <= 12; ++y) { map.tiles[y][14].type = TileType::Path; map.tiles[y][15].type = TileType::Path; }
 
