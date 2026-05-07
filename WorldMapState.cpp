@@ -270,6 +270,13 @@ void WorldMapState::BuildQixuanmen() {
     // ID 4: 张铁（在演武场左下角）
     map.tiles[8][7].npcId = 4;
 
+    // 围墙内沿绿化
+    map.tiles[1][3].type = TileType::Tree;  map.tiles[1][8].type = TileType::Tree;
+    map.tiles[1][16].type = TileType::Tree; map.tiles[1][21].type = TileType::Tree;
+    map.tiles[18][3].type = TileType::Tree; map.tiles[18][21].type = TileType::Tree;
+    map.tiles[5][20].type = TileType::Tree; map.tiles[5][22].type = TileType::Tree;
+    map.tiles[18][5].type = TileType::Tree; map.tiles[12][2].type = TileType::Tree;
+
     m_maps[map.id] = std::move(map);
 }
 
@@ -359,10 +366,11 @@ void WorldMapState::BuildJiazhou() {
     map.tiles[16][15].chestLootCount = 5;
 
     // 树木装饰
-    map.tiles[2][10].type = TileType::Tree;
-    map.tiles[2][20].type = TileType::Tree;
-    map.tiles[19][10].type = TileType::Tree;
-    map.tiles[19][20].type = TileType::Tree;
+    map.tiles[2][10].type = TileType::Tree; map.tiles[2][20].type = TileType::Tree;
+    map.tiles[19][10].type = TileType::Tree; map.tiles[19][20].type = TileType::Tree;
+    // 街边树
+    map.tiles[8][10].type = TileType::Tree; map.tiles[8][20].type = TileType::Tree;
+    map.tiles[15][10].type = TileType::Tree; map.tiles[15][20].type = TileType::Tree;
 
     m_maps[map.id] = std::move(map);
 }
@@ -995,6 +1003,36 @@ void WorldMapState::BuildQixuanmenBack() {
     for (int y = 1; y <= 3; ++y)
         map.tiles[y][16].type = TileType::Path;  // 北门向南延伸
 
+    // === 密林填充 ===
+    // 树林深处，填充大量树木
+    map.tiles[2][2].type = TileType::Tree; map.tiles[2][4].type = TileType::Tree;
+    map.tiles[2][6].type = TileType::Tree; map.tiles[2][8].type = TileType::Tree;
+    map.tiles[2][12].type = TileType::Tree; map.tiles[2][14].type = TileType::Tree;
+    map.tiles[3][2].type = TileType::Tree; map.tiles[3][8].type = TileType::Tree;
+    map.tiles[3][12].type = TileType::Tree; map.tiles[3][14].type = TileType::Tree;
+    map.tiles[4][2].type = TileType::Tree; map.tiles[4][4].type = TileType::Tree;
+    map.tiles[4][8].type = TileType::Tree; map.tiles[4][12].type = TileType::Tree;
+    map.tiles[4][14].type = TileType::Tree;
+    map.tiles[5][2].type = TileType::Tree; map.tiles[5][4].type = TileType::Tree;
+    map.tiles[5][8].type = TileType::Tree; map.tiles[5][12].type = TileType::Tree;
+    map.tiles[5][14].type = TileType::Tree;
+    map.tiles[6][2].type = TileType::Tree; map.tiles[6][4].type = TileType::Tree;
+    map.tiles[6][6].type = TileType::Tree; map.tiles[6][8].type = TileType::Tree;
+    map.tiles[6][12].type = TileType::Tree; map.tiles[6][14].type = TileType::Tree;
+    // 中下部
+    map.tiles[8][2].type = TileType::Tree; map.tiles[8][4].type = TileType::Tree;
+    map.tiles[8][8].type = TileType::Tree; map.tiles[8][12].type = TileType::Tree;
+    map.tiles[9][2].type = TileType::Tree; map.tiles[9][4].type = TileType::Tree;
+    map.tiles[9][8].type = TileType::Tree; map.tiles[9][12].type = TileType::Tree;
+    map.tiles[9][14].type = TileType::Tree;
+    map.tiles[11][2].type = TileType::Tree; map.tiles[11][4].type = TileType::Tree;
+    map.tiles[11][8].type = TileType::Tree; map.tiles[11][12].type = TileType::Tree;
+    map.tiles[11][14].type = TileType::Tree;
+    map.tiles[12][2].type = TileType::Tree; map.tiles[12][8].type = TileType::Tree;
+    map.tiles[12][12].type = TileType::Tree; map.tiles[12][14].type = TileType::Tree;
+    map.tiles[13][2].type = TileType::Tree; map.tiles[13][4].type = TileType::Tree;
+    map.tiles[13][8].type = TileType::Tree; map.tiles[13][12].type = TileType::Tree;
+
     m_maps[map.id] = std::move(map);
 }
 
@@ -1539,6 +1577,13 @@ void WorldMapState::BuildShenshuValley() {
     map.tiles[9][2].type = TileType::Tree;
     map.tiles[8][14].type = TileType::Tree;
     map.tiles[18][12].type = TileType::Tree;
+    // 谷口竹林
+    map.tiles[1][3].type = TileType::Tree; map.tiles[1][5].type = TileType::Tree;
+    map.tiles[1][11].type = TileType::Tree; map.tiles[1][13].type = TileType::Tree;
+    map.tiles[2][15].type = TileType::Tree; map.tiles[15][1].type = TileType::Tree;
+    // 谷内绿化
+    map.tiles[5][3].type = TileType::Tree; map.tiles[9][15].type = TileType::Tree;
+    map.tiles[15][6].type = TileType::Tree; map.tiles[15][10].type = TileType::Tree;
     map.tiles[18][5].type = TileType::Tree;
 
     // === 石头装饰 ===
@@ -1701,6 +1746,19 @@ void WorldMapState::BuildQingniuTown() {
     map.tiles[18][25].npcId = 303;  // equip_merchant
     // 杂货商 (杂货铺内)
     map.tiles[17][24].npcId = 304;  // shopkeeper
+
+    // === 装饰树（河边/路边/角落）===
+    // 河边垂柳
+    map.tiles[3][19].type = TileType::Tree; map.tiles[5][21].type = TileType::Tree;
+    map.tiles[6][19].type = TileType::Tree; map.tiles[9][19].type = TileType::Tree;
+    map.tiles[9][21].type = TileType::Tree;
+    // 路旁树
+    map.tiles[11][3].type = TileType::Tree; map.tiles[11][23].type = TileType::Tree;
+    map.tiles[2][3].type = TileType::Tree;  map.tiles[2][23].type = TileType::Tree;
+    // 韩家院外小树林
+    map.tiles[16][1].type = TileType::Tree; map.tiles[20][1].type = TileType::Tree;
+    // 杂货铺旁
+    map.tiles[14][28].type = TileType::Tree; map.tiles[16][28].type = TileType::Tree;
 
     m_maps[map.id] = std::move(map);
 }
