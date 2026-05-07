@@ -468,9 +468,15 @@ bool QuestSystem::AcceptQuest(const std::string& questId) {
         case QuestTargetType::UpgradeTechnique:
             // 检查功法是否已达到指定等级
             for (const auto& lt : player.GetLearned()) {
-                if (lt.techniqueId == obj.targetId && lt.level >= obj.requiredCount) {
-                    obj.currentCount = obj.requiredCount;
-                    obj.completed = true;
+                if (lt.techniqueId == obj.targetId) {
+                    if (lt.level >= obj.requiredCount) {
+                        obj.currentCount = obj.requiredCount;
+                        obj.completed = true;
+                    } else {
+                        // 已学会但等级未达标：将当前等级作为进度起点
+                        // 这样 requiredCount 就是目标等级，每次升级加1
+                        obj.currentCount = lt.level;
+                    }
                 }
             }
             break;
