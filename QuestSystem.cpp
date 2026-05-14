@@ -234,19 +234,47 @@ void QuestSystem::DefineMainQuests() {
         m_quests.push_back(q);
     }
 
-    // ===== 任务7: 墨大夫的异样（原著第7-9章）=====
+    // ===== 任务7: 厉飞雨失踪（原著第7章）=====
     {
         QuestData q;
-        q.id = "quest_007_mo_scheme";
-        q.name = "墨大夫的异样";
-        q.description = "墨大夫最近行为古怪，经常闭关不出。\n去【神手谷】找张铁聊聊，然后调查炼骨崖。";
+        q.id = "quest_007_li_missing";
+        q.name = "厉飞雨失踪";
+        q.description = "修炼归来的你在演武场遇到了厉飞雨的好友张铁，\n他告诉你厉飞雨已经好几天没出现了。去调查一下吧。";
         q.status = QuestStatus::Locked;
         q.prerequisiteQuests.push_back("quest_006_bottle");
 
         QuestObjective obj1;
-        obj1.description = "在神手谷与张铁对话";
+        obj1.description = "在七玄门外门与张铁对话";
         obj1.type = QuestTargetType::TalkToNPC;
         obj1.targetId = "zhang_tie";
+        q.objectives.push_back(obj1);
+
+        QuestObjective obj2;
+        obj2.description = "前往后山树林寻找厉飞雨的踪迹";
+        obj2.type = QuestTargetType::ExploreLocation;
+        obj2.targetId = "qixuanmen_back";
+        q.objectives.push_back(obj2);
+
+        q.reward.gold = 60;
+        q.reward.exp = 40;
+        q.onCompleteNarration = "story_li_missing";
+
+        m_quests.push_back(q);
+    }
+
+    // ===== 任务8: 墨大夫的异样（原著第7-9章）=====
+    {
+        QuestData q;
+        q.id = "quest_008_mo_scheme";
+        q.name = "墨大夫的异样";
+        q.description = "厉飞雨的失踪可能与墨大夫有关...\n去【神手谷】找墨大夫探探口风，然后调查炼骨崖。";
+        q.status = QuestStatus::Locked;
+        q.prerequisiteQuests.push_back("quest_007_li_missing");
+
+        QuestObjective obj1;
+        obj1.description = "前往神手谷与墨大夫对话";
+        obj1.type = QuestTargetType::TalkToNPC;
+        obj1.targetId = "mo_dafu";
         q.objectives.push_back(obj1);
 
         QuestObjective obj2;
@@ -255,25 +283,25 @@ void QuestSystem::DefineMainQuests() {
         obj2.targetId = "liangu_cliff";
         q.objectives.push_back(obj2);
 
-        q.reward.gold = 80;
-        q.reward.exp = 50;
-        QuestReward::ItemReward item_pill_7;
-        item_pill_7.itemId = "spirit_gathering_pill";
-        item_pill_7.count = 2;
-        q.reward.items.push_back(item_pill_7);
+        q.reward.gold = 100;
+        q.reward.exp = 60;
+        QuestReward::ItemReward item_pill_8;
+        item_pill_8.itemId = "spirit_gathering_pill";
+        item_pill_8.count = 2;
+        q.reward.items.push_back(item_pill_8);
         q.onCompleteNarration = "story_mo_scheme";
 
         m_quests.push_back(q);
     }
 
-    // ===== 任务8: 野狼帮入侵（原著野狼帮相关）=====
+    // ===== 任务9（原8）: 野狼帮入侵（原著野狼帮相关）=====
     {
         QuestData q;
         q.id = "quest_008_wolf_attack";
         q.name = "野狼帮入侵";
         q.description = "野狼帮大举进攻七玄门！王护法正在南门召集弟子防守。\n前往【七玄门外门】南门找王护法，协助击退来犯之敌。";
         q.status = QuestStatus::Locked;
-        q.prerequisiteQuests.push_back("quest_007_mo_scheme");
+        q.prerequisiteQuests.push_back("quest_008_mo_scheme");
 
         QuestObjective obj1;
         obj1.description = "与王护法对话，领取防守任务";
@@ -877,6 +905,8 @@ void QuestSystem::SetNarration(const std::string& key, NarrationEvent::Type type
          L"（韩立内心：墨大夫教我的功法...总觉得哪里有些奇怪。\n他到底想让我做什么？）"},
         {"hint_new_quest",
          L"★ 新的主线任务已开启！按 Q 键查看任务列表"},
+        {"story_li_missing",
+         L"（你在后山树林中发现了厉飞雨的衣物残片和几道深深的爪痕...\n「这...这不是普通的野兽所为。」）\n\n心中隐隐有种不祥的预感。厉飞雨的失踪，恐怕没那么简单。"},
     };
 
     m_currentNarration.text = key;
